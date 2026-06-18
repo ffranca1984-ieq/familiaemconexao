@@ -1363,6 +1363,389 @@ function renderPrayerList() {
 
 
 
+
+// ===== ROLES & ADMIN =====
+var SUPER_ADMIN_EMAIL = 'mrfsites@gmail.com';
+var ROLE_LABELS = { admin:'Escudo Admin', pastor:'Pastor', lider:'Lider', membro:'Membro' };
+var ROLE_CLASSES = { admin:'role-pastor', pastor:'role-pastor', lider:'role-lider', membro:'role-membro' };
+
+function getRoles() {
+  if (Object.keys(_rolesCache).length) return _rolesCache;
+  return JSON.parse(localStorage.getItem('fc_roles') || '{}');
+}
+function saveRoles(r) { _rolesCache = r; localStorage.setItem('fc_roles', JSON.stringify(r)); }
+
+function getUserRole(email) {
+  if (!email) return 'membro';
+  var e = email.toLowerCase();
+  if (e === SUPER_ADMIN_EMAIL) return 'admin';
+  var roles = getRoles();
+  return roles[e] || 'membro';
+}
+function isAdmin(role) { return role==='admin'||role==='pastor'||role==='lider'; }
+function isFirstUser() { return false; }
+
+function applyRoleUI(user) {
+  if (!user) return;
+  var role = getUserRole(user.email || '');
+  user._role = role;
+  var admin = isAdmin(role);
+  var fab = document.getElementById('admin-fab');
+  var badge = document.getElementById('avisos-admin-badge');
+  var roleBadge = document.getElementById('avisos-role-badge');
+  if (admin) {
+    if (fab) fab.style.display = 'flex';
+    if (badge) badge.style.display = 'block';
+    if (roleBadge) { roleBadge.textContent = ROLE_LABELS[role]||role; roleBadge.className = 'role-badge ' + (ROLE_CLASSES[role]||'role-membro'); }
+  } else {
+    if (fab) fab.style.display = 'none';
+    if (badge) badge.style.display = 'none';
+  }
+  var adminCard = document.getElementById('admin-mod-card');
+  if (adminCard) adminCard.style.display = admin ? 'block' : 'none';
+  var adminBtn = document.getElementById('modal-admin-btn');
+  if (adminBtn) adminBtn.style.display = admin ? 'flex' : 'none';
+  var wrap = document.getElementById('modal-role-wrap');
+  if (wrap) wrap.innerHTML = '<span class="role-badge ' + (ROLE_CLASSES[role]||'role-membro') + '">' + (ROLE_LABELS[role]||role) + '</span>';
+}
+
+// ===== AVISOS ADMIN =====
+var _editingId = null, _selectedTipo = 'aviso';
+
+function renderAvisos() {
+  var user = JSON.parse(localStorage.getItem('fc_user') || 'null');
+  applyRoleUI(user || {email:''});
+  var el = document.getElementById('avisos-list');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-box"><div class="spinner"></div><p>Carregando avisos...</p></div>';
+  fsGetAvisos(function(list) {
+    if (!list || !list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📢</div><div class="empty-title">Nenhum aviso cadastrado.</div></div>'; return; }
+    el.innerHTML = list.map(function(a) {
+      return '<div class="aviso-card"><div class="aviso-type ' + a.tipo + '">' + a.tipo.toUpperCase() + '</div><div class="aviso-title">' + a.titulo + '</div><div class="aviso-desc">' + a.desc + '</div><div class="aviso-meta"><span>📅 ' + (a.data||'') + '</span>' + (a.local ? '<div class="aviso-dot"></div><span>📍 ' + a.local + '</span>' : '') + '</div></div>';
+    }).join('');
+  });
+}
+
+function openAdminModal() { document.getElementById('admin-modal').classList.add('show'); switchAdminTab('avisos', document.querySelector('.admin-tab')); }
+function closeAdminModal() { document.getElementById('admin-modal').classList.remove('show'); _editingId = null; }
+function closeAdminModalOutside(e) { if (e.target === document.getElementById('admin-modal')) closeAdminModal(); }
+
+function switchAdminTab(tab, btn) {
+  document.querySelectorAll('.admin-tab').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  if (tab === 'avisos') renderAdminAvisos();
+  else renderAdminMembros();
+}
+
+function renderAdminAvisos() {
+  var body = document.getElementById('admin-body');
+  if (!body) return;
+  body.innerHTML = '<div class="loading-box"><div class="spinner"></div><p>Carregando...</p></div>';
+  fsGetAvisos(function(list) {
+    var flist = (list && list.length) ? list : [];
+    _renderAdminAvisosUI(flist, body);
+  });
+}
+
+function _renderAdminAvisosUI(list, body) {
+  var html2 = '<div style="margin-bottom:14px"><button class="btn-save-aviso" style="background:var(--bg3);color:var(--gold2);border:1px solid var(--border)" onclick="showAvisoForm(null)">+ Novo Aviso</button></div>';
+  list.forEach(function(a) {
+    html2 += '<div class="aviso-admin-card"><div class="aviso-type ' + a.tipo + '" style="margin-bottom:4px">' + a.tipo.toUpperCase() + '</div><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px">' + a.titulo + '</div><div style="font-size:12px;color:var(--text2)">' + (a.data||'') + (a.local?' · '+a.local:'') + '</div><div class="aviso-admin-actions"><button class="btn-edit" data-id="' + a.id + '" onclick="adminEditAviso(this)">Editar</button><button class="btn-delete" data-id="' + a.id + '" onclick="adminDeleteAviso(this)">🗑️</button></div></div>';
+  });
+  if (!list.length) html2 += '<div class="empty-state"><div class="empty-icon">📢</div><div class="empty-title">Nenhum aviso ainda.</div></div>';
+  html2 += '<div id="aviso-form-wrap"></div>';
+  body.innerHTML = html2;
+}
+
+function adminEditAviso(btn) { showAvisoForm(btn.getAttribute('data-id')); }
+function adminDeleteAviso(btn) { deleteAviso(btn.getAttribute('data-id')); }
+
+function showAvisoForm(id) {
+  _editingId = id;
+  var aviso = null;
+  _selectedTipo = 'aviso';
+  var tipos = ['culto','evento','aviso','urgente'];
+  var tipoBtns = tipos.map(function(tp) {
+    var cls = 'tipo-btn' + (tp===_selectedTipo?' selected-'+tp:'');
+    return '<button class="' + cls + '" onclick="selectTipo(\'' + tp + '\',this)">' + tp + '</button>';
+  }).join('');
+  document.getElementById('aviso-form-wrap').innerHTML = '<div style="background:var(--bg3);border-radius:14px;padding:14px;margin-top:12px;border:1px solid var(--border2)"><div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px">' + (id?'Editando aviso':'Novo aviso') + '</div><div class="field"><label>Tipo</label><div class="aviso-form-grid">' + tipoBtns + '</div></div><div class="field"><label>Título</label><input id="af-titulo" type="text" placeholder="Título"/></div><div class="field"><label>Descrição</label><textarea id="af-desc" rows="3" placeholder="Descrição..."></textarea></div><div class="field"><label>Data</label><input id="af-data" type="text" placeholder="Ex: Domingo, 22 Jun"/></div><div class="field"><label>Local</label><input id="af-local" type="text" placeholder="Ex: Templo Central"/></div><button class="btn-save-aviso" onclick="saveAvisoForm()">Salvar</button><button style="width:100%;padding:10px;border-radius:10px;background:transparent;border:1px solid var(--border2);color:var(--text2);font-size:13px;cursor:pointer;margin-top:6px;font-family:inherit" onclick="cancelAvisoForm()">Cancelar</button></div>';
+  if (id) {
+    fsGetAvisos(function(list) {
+      var a = list ? list.find(function(x){return x.id===id;}) : null;
+      if (a) {
+        _selectedTipo = a.tipo;
+        document.getElementById('af-titulo').value = a.titulo||'';
+        document.getElementById('af-desc').value = a.desc||'';
+        document.getElementById('af-data').value = a.data||'';
+        document.getElementById('af-local').value = a.local||'';
+      }
+    });
+  }
+}
+
+function selectTipo(tipo, btn) {
+  _selectedTipo = tipo;
+  document.querySelectorAll('.tipo-btn').forEach(function(b) { b.className = 'tipo-btn'; });
+  btn.className = 'tipo-btn selected-' + tipo;
+}
+
+function saveAvisoForm() {
+  var titulo = document.getElementById('af-titulo').value.trim();
+  var desc = document.getElementById('af-desc').value.trim();
+  var data = document.getElementById('af-data').value.trim();
+  var local = document.getElementById('af-local').value.trim();
+  if (!titulo||!desc) { toast('Preencha título e descrição.'); return; }
+  var avisoData = { id: _editingId||null, tipo:_selectedTipo, titulo:titulo, desc:desc, data:data||'Em breve', local:local, createdAt:_editingId?undefined:new Date().toISOString() };
+  fsSaveAviso(avisoData, function() { toast(_editingId?'Aviso atualizado!':'Aviso criado!'); _editingId=null; renderAdminAvisos(); cancelAvisoForm(); });
+}
+
+function editAviso(id) { showAvisoForm(id); }
+function deleteAviso(id) { fsDeleteAviso(String(id), function() { toast('Aviso removido.'); renderAdminAvisos(); }); }
+function cancelAvisoForm() { var w=document.getElementById('aviso-form-wrap'); if(w) w.innerHTML=''; _editingId=null; }
+
+// ===== MEMBROS ADMIN =====
+function renderAdminMembros() {
+  var body = document.getElementById('admin-body');
+  body.innerHTML = '<div class="loading-box"><div class="spinner"></div><p>Carregando membros...</p></div>';
+  var currentUser = JSON.parse(localStorage.getItem('fc_user') || '{}');
+  var callerRole = getUserRole(currentUser.email || '');
+  fsGetMembers(function(members) {
+    if (!members.length) { body.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Nenhum membro ainda.</div><div class="empty-desc">Os membros aparecem aqui conforme fazem login.</div></div>'; return; }
+    var rows = members.map(function(m) {
+      var role = getUserRole(m.email);
+      var isSelf = currentUser.email && m.email===currentUser.email.toLowerCase();
+      var opts = '<option value="membro"'+(role==='membro'?' selected':'')+'>Membro</option><option value="lider"'+(role==='lider'?' selected':'')+'>Lider</option><option value="pastor"'+(role==='pastor'?' selected':'')+'>Pastor</option>';
+      if (callerRole==='admin') opts += '<option value="admin"'+(role==='admin'?' selected':'')+'>Admin</option>';
+      var disabled = isSelf?' disabled':'';
+      return '<div class="member-row" data-email="'+m.email+'"><div class="member-avatar-sm">'+(m.picture?'<img src="'+m.picture+'" alt=""/>':m.name.charAt(0).toUpperCase())+'</div><div class="member-info"><div class="member-name">'+m.name+(isSelf?' (voce)':'')+'</div><div class="member-email">'+m.email+'</div></div><select class="role-select"'+(isSelf?' disabled':'')+' onchange="memberRoleChanged(this)">'+opts+'</select></div>';
+    }).join('');
+    body.innerHTML = '<div style="font-size:11px;color:var(--text3);margin-bottom:14px">'+members.length+' membro(s)</div>'+rows;
+  });
+}
+
+function memberRoleChanged(sel) { var email = sel.closest("[data-email]").getAttribute("data-email"); setMemberRole(email, sel.value); }
+
+function setMemberRole(email, role) {
+  var currentUser = JSON.parse(localStorage.getItem('fc_user') || '{}');
+  var callerRole = getUserRole(currentUser.email || '');
+  var targetEmail = email.toLowerCase();
+  if (targetEmail===SUPER_ADMIN_EMAIL) { toast('Este perfil não pode ser alterado.'); setTimeout(renderAdminMembros,300); return; }
+  if (role==='admin' && callerRole!=='admin') { toast('Apenas o Admin pode atribuir este perfil.'); setTimeout(renderAdminMembros,300); return; }
+  var roles = getRoles(); roles[targetEmail]=role; saveRoles(roles);
+  fsSetRole(targetEmail, role);
+  toast((ROLE_LABELS[role]||role)+' atribuído!');
+  setTimeout(renderAdminMembros, 300);
+}
+
+// ===== DEVOCIONAL IA =====
+var _devoIALoaded = false, _devoIADate = '';
+var DEVOCIONAIS_DATA = [
+  {v:"O Senhor e o meu pastor; nada me faltara.",r:"Salmos 23:1",ref:"Salmos 23:1 | SEGURANCA E PROVISAO FAMILIAR",rx:"Em meio as pressoes do dia a dia, e facil esquecer que nao caminhamos sozinhos. Deus se apresenta como pastor que conhece cada ovelha pelo nome.\n\nNo lar, essa verdade transforma tudo. O pai ou mae que sabe que e cuidado por Deus consegue cuidar melhor dos filhos.\n\nTrazer essa imagem para o cotidiano significa lembrar: Ele esta aqui, guiando a familia a aguas tranquilas.",p:"Reunam-se e leiam o Salmo 23 em voz alta. Cada membro compartilha: Em que area preciso confiar mais no Pastor?"},
+  {v:"Porque Deus amou o mundo de tal maneira que deu o seu Filho unigenito.",r:"Joao 3:16",ref:"Joao 3:16 | AMOR INCONDICIONAL NO LAR",rx:"O amor de Deus nao foi teorico - foi concreto e voluntario. Ele deu o que tinha de mais precioso.\n\nNas familias, o amor tambem se prova na entrega. O pai que abre mao do seu tempo para ouvir o filho. A mae que engole o cansaco para estar presente.\n\nQuando ensinamos nossos filhos sobre Joao 3:16, ensinamos que amor verdadeiro tem um custo - e que vale cada sacrificio.",p:"Cada membro escreve uma coisa que vai dar para outra pessoa da familia esta semana. Compartilhem e guardem como compromisso."},
+  {v:"Tudo posso naquele que me fortalece.",r:"Filipenses 4:13",ref:"Filipenses 4:13 | FORCA E RESILIENCIA FAMILIAR",rx:"Paulo escreveu essas palavras de uma prisao. Sua forca nao vinha das circunstancias, mas de uma fonte que circunstancias nao conseguem secar.\n\nAs familias enfrentam temporadas dificeis tambem. Nesses momentos, a promessa nao e que tudo sera facil, mas que havera forca para atravessar.\n\nEnsinar os filhos a buscar forca em Deus e um dos maiores presentes que um lar pode oferecer.",p:"Compartilhe com a familia um momento em que sentiu que nao aguentaria mais, mas Deus deu forca. Ore pedindo essa forca para os desafios atuais."},
+  {v:"Confia no Senhor de todo o teu coracao e nao te apoies no teu proprio entendimento.",r:"Proverbios 3:5",ref:"Proverbios 3:5 | FE E DIRECAO FAMILIAR",rx:"Ha momentos em que simplesmente nao entendemos o que esta acontecendo. Uma crise inesperada. Uma oracao sem resposta clara.\n\nA Biblia nao nos pede para desligar a mente, mas para nao fazer dela o arbitro final. Confiar no Senhor significa entregar ate o que nao compreendemos.\n\nFamilias que cultivam essa confianca desenvolvem uma paz que vai alem da logica.",p:"Identifiquem juntos uma situacao que ninguem sabe como resolver. Escrevam em papel e orem entregando nas maos de Deus."},
+  {v:"Nao temas, porque eu sou contigo; nao te assombres, porque eu sou o teu Deus.",r:"Isaias 41:10",ref:"Isaias 41:10 | PRESENCA DE DEUS NO LAR",rx:"O medo e uma das maiores forcas que enfraquecem os lares. Medo do futuro, de doencas, de perdas.\n\nQuando Deus diz nao temas, Ele nao esta minimizando nossas angustias. Ele esta se colocando entre nos e elas.\n\nUm lar que vive essa realidade transmite seguranca para os filhos. Eles aprendem que podem enfrentar o desconhecido porque nao estao sozinhos.",p:"Antes de dormir, cada membro compartilha um medo. O pai ou mae ora especificamente por cada um, declarando a presenca de Deus."},
+  {v:"Buscai primeiro o reino de Deus e a sua justica.",r:"Mateus 6:33",ref:"Mateus 6:33 | PRIORIDADES FAMILIARES",rx:"Jesus nao disse para ignorar as necessidades praticas. Disse para nao deixar que elas ocupem o primeiro lugar.\n\nNos lares modernos, a batalha das prioridades e constante. Quando a busca por Deus fica em segundo plano, tudo parece urgente mas nada parece significativo.\n\nFamilias que reorganizam as prioridades em torno de Deus descobrem que as outras coisas comecam a se encaixar.",p:"Facam juntos um inventario de tempo: quanto dedicam a Deus, a familia e ao trabalho? Conversem honestamente sobre o que precisa mudar."},
+  {v:"Sede fortes e corajosos. Nao temais nem vos assusteis.",r:"Josue 1:9",ref:"Josue 1:9 | CORAGEM PARA A JORNADA",rx:"Josue estava prestes a liderar um povo para territorio desconhecido. E foi exatamente ai que Deus falou: seja forte e corajoso.\n\nA coragem biblica nao e a ausencia de medo, mas a decisao de avancar apesar dele. Os lideres do lar sao chamados a essa coragem diariamente.\n\nFilhos que veem seus pais agindo com coragem aprendem que e possivel enfrentar o impossivel com Deus.",p:"Cada membro compartilha algo que precisa de coragem para enfrentar. A familia ora por cada um, declarando Josue 1:9 como promessa pessoal."},
+  {v:"O amor e paciente, o amor e bondoso.",r:"1 Corintios 13:4",ref:"1 Corintios 13:4 | AMOR PRATICO NO LAR",rx:"Paulo descreve o amor nao como sentimento, mas como conjunto de escolhas. Paciencia e uma escolha. Bondade e uma escolha.\n\nNos relacionamentos familiares essa verdade e libertadora. O amor nao depende de circunstancias perfeitas ou sentimentos constantes.\n\nQuando uma familia decide praticar 1 Corintios 13 no cotidiano, o lar se torna um lugar seguro onde cada pessoa sabe que e amada incondicionalmente.",p:"Leiam 1 Corintios 13:4-7 juntos, substituindo o amor pelo nome de cada membro. Orem para se tornarem esse amor uns para os outros."},
+];
+
+function loadDevoIA() {
+  var d = new Date();
+  var today = d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  if (_devoIALoaded && _devoIADate===today) return;
+  var cached = localStorage.getItem('fc_devo_cache');
+  if (cached) { try { var obj=JSON.parse(cached); if(obj.date===today&&obj.devo){renderDevoIA(obj.devo);_devoIALoaded=true;_devoIADate=today;return;} } catch(e){} }
+  var wrap=document.getElementById('devo-ia-wrap');
+  if(wrap) wrap.innerHTML='<div class="devo-ia-loading"><div class="spinner"></div><p>GERANDO DEVOCIONAL...</p></div>';
+  var hoje=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  var prompt='Voce e um pastor da Igreja do Evangelho Quadrangular. Gere um devocional diario para familias cristas para hoje ('+hoje+'). Responda SOMENTE em JSON valido, sem texto fora do JSON, com esta estrutura: {"v":"versiculo","r":"Livro X:Y","ref":"Livro X:Y | TEMA","rx":"paragrafo1\n\nparagrafo2\n\nparagrafo3","p":"acao pratica"}';
+  fetch('/.netlify/functions/devo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt})})
+    .then(function(r){if(!r.ok)throw new Error(r.status);return r.json();})
+    .then(function(data){
+      var text=data.content[0].text.trim();if(text.indexOf('```')===0){var lines2=text.split('\n');if(lines2[0].indexOf('```')===0)lines2.shift();if(lines2[lines2.length-1]==='```')lines2.pop();text=lines2.join('\n').trim();}text=text.trim();
+      var devo=JSON.parse(text);
+      localStorage.setItem('fc_devo_cache',JSON.stringify({date:today,devo:devo}));
+      renderDevoIA(devo);_devoIALoaded=true;_devoIADate=today;
+    }).catch(function(e){
+      console.error('Devo IA:',e);
+      var start=new Date(d.getFullYear(),0,0);
+      var doy=Math.floor((d-start)/86400000);
+      var devo=DEVOCIONAIS_DATA[doy%DEVOCIONAIS_DATA.length];
+      localStorage.setItem('fc_devo_cache',JSON.stringify({date:today,devo:devo}));
+      renderDevoIA(devo);_devoIALoaded=true;_devoIADate=today;
+    });
+}
+
+function refreshDevoIA(){_devoIALoaded=false;_devoIADate='';localStorage.removeItem('fc_devo_cache');loadDevoIA();}
+
+function renderDevoIA(d) {
+  var wrap=document.getElementById('devo-ia-wrap'); if(!wrap)return;
+  var rxHtml=(d.rx||'').split('\n\n').filter(Boolean).map(function(p){return '<p style="margin-bottom:10px">'+p.trim()+'</p>';}).join('');
+  wrap.innerHTML='<div class="devo-ia-card"><div class="devo-ia-verse">\u201c'+d.v+'\u201d</div><div class="devo-ia-ref">\u25cf '+(d.ref||d.r)+'</div><div class="devo-ia-section-label">Reflexao Devocional</div><div class="devo-ia-reflexao">'+rxHtml+'</div><div class="devo-ia-passo"><div class="devo-ia-passo-label">Passo Pratico de Fe</div><div class="devo-ia-passo-text">'+d.p+'</div></div><div class="devo-ia-refresh"><button class="btn-refresh-ia" onclick="refreshDevoIA()">&#8635; Novo devocional</button></div></div>';
+}
+
+function saveDevo() {
+  var texto=document.getElementById('devo-texto'); if(!texto||!texto.value.trim()){toast('Escreva sua reflexao antes de salvar.');return;}
+  var devos=JSON.parse(localStorage.getItem('fc_devos')||'[]');
+  var refEl=document.querySelector('.devo-ia-ref');
+  var ref=refEl?refEl.textContent.replace('● ','').trim():'Devocional do dia';
+  devos.push({titulo:ref.split('|')[0].trim(),passagem:ref,texto:texto.value.trim(),date:new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})});
+  localStorage.setItem('fc_devos',JSON.stringify(devos));
+  texto.value=''; renderDevoList(); toast('Anotacao salva! +15 pts'); addPts(15);
+}
+
+// ===== VERSICULOS SALVOS & ANOTACOES =====
+function renderSaved(){
+  var bm=JSON.parse(localStorage.getItem('fc_bm')||'{}');
+  var el=document.getElementById('saved-list'); if(!el)return;
+  var keys=Object.keys(bm).filter(function(k){return bm[k];});
+  if(!keys.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🔖</div><div class="empty-title">Nenhum versiculo salvo.</div><div class="empty-desc">Na Biblia, toque em um versiculo e clique em Salvar.</div></div>';return;}
+  el.innerHTML='';
+  keys.forEach(function(k){
+    var parts=k.split('_');
+    var ver=parts[0].toUpperCase(),bi=parseInt(parts[1]),ci=parseInt(parts[2]),vi=parseInt(parts[3]);
+    var bn=BOOKS[bi]?BOOKS[bi].n:'?';
+    var div=document.createElement('div'); div.className='entry-card'; div.style.cursor='pointer';
+    div.innerHTML='<div class="entry-ref" style="font-size:11px;color:var(--gold2);margin-bottom:4px">'+ver+' · '+bn+' '+(ci+1)+':'+(vi+1)+'</div><div class="entry-body" id="sv-'+k+'">Carregando...</div>';
+    div.addEventListener('click',function(){openVerseInBible(bi,ci,ver.toLowerCase());});
+    el.appendChild(div);
+    getBibleData(ver.toLowerCase()).then(function(data){var t=data[bi]&&data[bi].chapters[ci]?data[bi].chapters[ci][vi]:'';var te=document.getElementById('sv-'+k);if(te)te.textContent=t;}).catch(function(){});
+  });
+}
+
+function renderNotes(){
+  var nt=JSON.parse(localStorage.getItem('fc_nt')||'{}');
+  var el=document.getElementById('notes-list'); if(!el)return;
+  var keys=Object.keys(nt).filter(function(k){return nt[k];});
+  if(!keys.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">Nenhuma anotacao ainda.</div></div>';return;}
+  el.innerHTML=keys.map(function(k){
+    var parts=k.split('_'),ver=parts[0].toUpperCase(),bi=parseInt(parts[1]),ci=parseInt(parts[2]),vi=parseInt(parts[3]);
+    var bn=BOOKS[bi]?BOOKS[bi].n:'?';
+    return '<div class="entry-card"><div class="entry-ref" style="font-size:11px;color:var(--gold2);margin-bottom:4px">'+ver+' · '+bn+' '+(ci+1)+':'+(vi+1)+'</div><div class="entry-body" style="font-style:italic;color:var(--text2)">"'+nt[k]+'"</div></div>';
+  }).join('');
+}
+
+function openVerseInBible(bi,ci,version){S.book=bi;S.chap=ci;S.version=version;goTo('s-bible');}
+
+function closeProfileAndGo(id){
+  document.getElementById('modal-profile').classList.remove('show');
+  goTo(id);
+  if(id==='s-saved')renderSaved();
+  if(id==='s-notes')renderNotes();
+}
+function closeProfileOpenAdmin(){
+  document.getElementById('modal-profile').classList.remove('show');
+  goTo('s-avisos'); renderAvisos(); setTimeout(openAdminModal,350);
+}
+
+// ===== PLANOS DE LEITURA =====
+var PLANOS=[
+  {nome:'Evangelho de Mateus',dias:[{label:'Dia 1',ref:'Mateus 1-4'},{label:'Dia 2',ref:'Mateus 5-7'},{label:'Dia 3',ref:'Mateus 8-11'},{label:'Dia 4',ref:'Mateus 12-15'},{label:'Dia 5',ref:'Mateus 16-20'},{label:'Dia 6',ref:'Mateus 21-25'},{label:'Dia 7',ref:'Mateus 26-28'}]},
+  {nome:'Salmos (30 dias)',dias:Array.from({length:30},function(_,i){var s=i*5+1,e=Math.min(s+4,150);return {label:'Dia '+(i+1),ref:'Salmos '+s+(s<e?'-'+e:'')};})},
+  {nome:'Proverbios (31 dias)',dias:Array.from({length:31},function(_,i){return {label:'Dia '+(i+1),ref:'Proverbios '+(i+1)};})},
+];
+var currentPlano=0;
+function initPlano(){
+  var tabs=document.getElementById('plan-tabs');
+  tabs.innerHTML=PLANOS.map(function(p,i){return '<button class="ptab'+(i===0?' active':'')+'" onclick="selectPlano('+i+',this)">'+p.nome+'</button>';}).join('');
+  renderPlano();
+}
+function selectPlano(i,btn){currentPlano=i;document.querySelectorAll('.ptab').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderPlano();}
+function renderPlano(){
+  var plano=PLANOS[currentPlano];
+  var done=JSON.parse(localStorage.getItem('fc_plano_'+currentPlano)||'[]');
+  var list=document.getElementById('plan-list');
+  list.innerHTML=plano.dias.map(function(d,i){return '<div class="plan-item'+(done[i]?' done':'')+'" onclick="togglePlanoDay('+i+')"><div class="plan-check">'+(done[i]?'✓':'')+'</div><div><div class="plan-item-label">'+d.label+'</div><div class="plan-item-ref">'+d.ref+'</div></div></div>';}).join('');
+  var total=plano.dias.length,doneCount=done.filter(Boolean).length;
+  document.getElementById('plan-prog-label').textContent=doneCount+' de '+total+' dias concluidos';
+  document.getElementById('plan-prog-fill').style.width=(doneCount/total*100)+'%';
+}
+function togglePlanoDay(i){
+  var done=JSON.parse(localStorage.getItem('fc_plano_'+currentPlano)||'[]');
+  done[i]=!done[i]; localStorage.setItem('fc_plano_'+currentPlano,JSON.stringify(done));
+  renderPlano(); if(done[i]){toast('Dia concluido! +5 pts');addPts(5);}
+}
+
+// ===== GINCANA =====
+var QUIZ_QUESTIONS=[
+  {q:'Qual governante mandou lancar Daniel na cova dos leoes?',opts:['Nabucodonosor','Dario','Belsazar','Ciro'],ans:1},
+  {q:'Quantos dias Noé ficou na arca?',opts:['20 dias','40 dias','100 dias','150 dias'],ans:1},
+  {q:'Quem foi o primeiro rei de Israel?',opts:['Davi','Salomao','Saul','Samuel'],ans:2},
+  {q:'Em qual cidade Jesus nasceu?',opts:['Nazare','Jerusalem','Belem','Cafarnaum'],ans:2},
+  {q:'Quantos apostolos Jesus escolheu?',opts:['7','10','12','14'],ans:2},
+  {q:'Quem escreveu a maior parte dos Salmos?',opts:['Moises','Salomao','Davi','Asafe'],ans:2},
+  {q:'O que Jesus multiplicou para alimentar 5000 pessoas?',opts:['Pao e vinho','Peixes e trigo','5 paes e 2 peixes','7 paes e 3 peixes'],ans:2},
+  {q:'Qual e o livro mais longo da Biblia?',opts:['Genesis','Isaias','Salmos','Jeremias'],ans:2},
+  {q:'Em que idioma foi escrito o Novo Testamento?',opts:['Hebraico','Aramaico','Latim','Grego'],ans:3},
+  {q:'Qual profeta foi engolido por um grande peixe?',opts:['Elias','Jonas','Naum','Amos'],ans:1},
+  {q:'Quantos livros tem a Biblia?',opts:['60','64','66','72'],ans:2},
+  {q:'Quem traiu Jesus por 30 moedas de prata?',opts:['Pedro','Tome','Judas Iscariotes','Bartolomeu'],ans:2},
+  {q:'Qual foi o primeiro milagre de Jesus?',opts:['Cura de um cego','Transformar agua em vinho','Multiplicacao dos paes','Ressurreicao de Lazaro'],ans:1},
+  {q:'Quem batizou Jesus no rio Jordao?',opts:['Pedro','Paulo','Joao Batista','Andre'],ans:2},
+  {q:'Em qual monte Moises recebeu os Dez Mandamentos?',opts:['Monte Carmelo','Monte Sinai','Monte das Oliveiras','Monte Nebo'],ans:1},
+];
+var QS={idx:0,score:0,answered:false,shuffled:[]};
+function initQuiz(){QS.idx=0;QS.score=0;QS.answered=false;QS.shuffled=[...QUIZ_QUESTIONS].sort(function(){return Math.random()-.5;}).slice(0,10);renderQuizQuestion();}
+function renderQuizQuestion(){
+  var area=document.getElementById('quiz-area');
+  if(QS.idx>=QS.shuffled.length){renderQuizResult();return;}
+  var q=QS.shuffled[QS.idx];
+  area.innerHTML='<div class="quiz-header"><div class="quiz-prog-label">Pergunta '+(QS.idx+1)+' de '+QS.shuffled.length+'</div><div class="quiz-pts-label">+10pts por acerto!</div></div><div class="quiz-prog-bar"><div class="quiz-prog-fill" style="width:'+(QS.idx/QS.shuffled.length*100)+'%"></div></div><div class="quiz-question">'+q.q+'</div><div class="quiz-options">'+q.opts.map(function(o,i){return '<button class="quiz-opt" onclick="answerQuiz('+i+')" id="qopt-'+i+'">'+o+'</button>';}).join('')+'</div><div id="quiz-feedback" style="display:none"></div><button class="quiz-next-btn" id="quiz-next" style="display:none" onclick="nextQuestion()">'+(QS.idx+1<QS.shuffled.length?'Proxima Pergunta →':'Ver Resultado 🏆')+'</button>';
+}
+function answerQuiz(chosen){
+  if(QS.answered)return; QS.answered=true;
+  var q=QS.shuffled[QS.idx],correct=q.ans;
+  document.querySelectorAll('.quiz-opt').forEach(function(btn,i){btn.disabled=true;if(i===correct)btn.classList.add('correct');else if(i===chosen)btn.classList.add('wrong');});
+  var fb=document.getElementById('quiz-feedback'); fb.style.display='block';
+  if(chosen===correct){QS.score+=10;fb.className='quiz-feedback ok';fb.textContent='Correto! +10 pontos';}
+  else{fb.className='quiz-feedback err';fb.textContent='Errou! Resposta: '+q.opts[correct];}
+  document.getElementById('quiz-next').style.display='block';
+}
+function nextQuestion(){QS.idx++;QS.answered=false;renderQuizQuestion();}
+function renderQuizResult(){
+  var pct=Math.round(QS.score/(QS.shuffled.length*10)*100);
+  var icon=pct>=80?'🏆':pct>=50?'🎉':'📖';
+  var msg=pct>=80?'Excelente! Voce conhece bem a Palavra!':pct>=50?'Bom trabalho! Continue estudando!':'Continue lendo a Biblia!';
+  document.getElementById('quiz-area').innerHTML='<div class="quiz-result"><div class="quiz-result-icon">'+icon+'</div><div class="quiz-result-title">'+msg+'</div><div class="quiz-result-sub">Voce acertou '+QS.score/10+' de '+QS.shuffled.length+' perguntas</div><div class="quiz-result-pts">+'+QS.score+' pontos!</div><button class="quiz-restart" onclick="initQuiz()">Jogar Novamente</button></div>';
+  addPts(QS.score); document.getElementById('quiz-pts-top').textContent=QS.score;
+}
+
+// ===== AVISOS (static data fallback) =====
+function getAvisos(){var s=localStorage.getItem('fc_avisos');if(s)return JSON.parse(s);return [];}
+function saveAvisos(list){localStorage.setItem('fc_avisos',JSON.stringify(list));}
+
+// ===== GOТО HOOKS =====
+var _origGoTo = goTo;
+goTo = function(id) {
+  _origGoTo(id);
+  if(id==='s-devo'){renderDevoList();loadDevoIA();}
+  if(id==='s-oracao')renderPrayerList();
+  if(id==='s-avisos')renderAvisos();
+  if(id==='s-quiz'){initQuiz();}
+  if(id==='s-plano')initPlano();
+};
+
+// ===== THEME =====
+(function(){
+  var saved=localStorage.getItem('fc_theme')||'dark';
+  if(saved==='light')document.body.classList.add('light');
+  var btn=document.getElementById('theme-toggle');
+  if(btn)btn.textContent=saved==='light'?'🌙':'☀️';
+})();
+function toggleTheme(){
+  var isLight=document.body.classList.toggle('light');
+  var theme=isLight?'light':'dark';
+  localStorage.setItem('fc_theme',theme);
+  document.querySelectorAll('.theme-toggle').forEach(function(b){b.textContent=isLight?'🌙':'☀️';});
+  toast(isLight?'Tema claro ativado':'Tema escuro ativado');
+}
+
+window.addEventListener('offline',function(){var e=document.getElementById('offline-bar');if(e)e.classList.add('show');});
+window.addEventListener('online',function(){var e=document.getElementById('offline-bar');if(e)e.classList.remove('show');});
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
+loadVDia();
 </script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
