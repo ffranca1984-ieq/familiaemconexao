@@ -1716,6 +1716,98 @@ function renderQuizResult(){
 function getAvisos(){var s=localStorage.getItem('fc_avisos');if(s)return JSON.parse(s);return [];}
 function saveAvisos(list){localStorage.setItem('fc_avisos',JSON.stringify(list));}
 
+
+// ===== PONTOS =====
+function addPts(n) {
+  S.pts += n;
+  localStorage.setItem('fc_pts', S.pts);
+  var ps = document.getElementById('pts-show'); if(ps) ps.textContent = S.pts;
+  var mp = document.getElementById('modal-pts'); if(mp) mp.textContent = S.pts;
+}
+
+// ===== AMEM =====
+function addAmen(id, currentAmens) {
+  if (id && typeof id === 'string' && db) {
+    fsAddAmen(id, parseInt(currentAmens)||0);
+    toast('🙏 Amém registrado!');
+  }
+}
+
+// ===== PEDIDOS DE ORACAO =====
+function savePrayer() {
+  var for_who = document.getElementById('prayer-for').value.trim();
+  var body_text = document.getElementById('prayer-body').value.trim();
+  var anon = document.getElementById('prayer-anon').checked;
+  if (!body_text) { toast('Escreva o pedido de oração.'); return; }
+  var user = JSON.parse(localStorage.getItem('fc_user') || '{}');
+  var isGuest = !user.email;
+  var prayer = {
+    for_who: for_who,
+    body: body_text,
+    anon: anon || isGuest,
+    user: (anon || isGuest) ? 'Anônimo' : (user.name || 'Anônimo'),
+    amens: 0,
+    date: new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})
+  };
+  fsSavePrayer(prayer, function() {
+    toast('🕊️ Pedido compartilhado!');
+    addPts(10);
+  });
+  document.getElementById('prayer-for').value = '';
+  document.getElementById('prayer-body').value = '';
+  document.getElementById('prayer-anon').checked = false;
+}
+
+// ===== DEVOCIONAL LIST =====
+function renderDevoList() {
+  var devos = JSON.parse(localStorage.getItem('fc_devos') || '[]');
+  var el = document.getElementById('devo-list');
+  if (!el) return;
+  if (!devos.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><div class="empty-title">Nenhuma anotação ainda.</div></div>';
+    return;
+  }
+  el.innerHTML = devos.slice().reverse().map(function(d) {
+    return '<div class="entry-card"><div class="entry-date">'+d.date+'</div><div class="entry-title">'+d.titulo+'</div><div class="entry-ref">📖 '+d.passagem+'</div><div class="entry-body">'+d.texto+'</div></div>';
+  }).join('');
+}
+
+// ===== BIBLE HELPERS =====
+function getBibleData(version) {
+  if (S.bibleCache[version]) return Promise.resolve(S.bibleCache[version]);
+  var prog=document.getElementById('caching-prog');
+  var fill=document.getElementById('prog-fill');
+  var label=document.getElementById('prog-label');
+  if(prog) prog.classList.add('show');
+  if(label) label.textContent='Baixando '+version.toUpperCase()+' para uso offline...';
+  return fetch('bibles/'+version+'.json').then(function(resp){
+    if(!resp.ok) throw new Error('fetch failed');
+    var reader=resp.body.getReader();
+    var cl=+resp.headers.get('Content-Length')||4000000;
+    var recv=0; var chunks=[];
+    function read(){return reader.read().then(function(d){
+      if(d.done){
+        return new Blob(chunks).text().then(function(text){
+          var data=JSON.parse(text);
+          S.bibleCache[version]=data;
+          if(fill) fill.style.width='100%';
+          setTimeout(function(){
+            if(prog) prog.classList.remove('show');
+            if(fill) fill.style.width='0%';
+            var cb=document.getElementById('cache-bar'); if(cb) cb.classList.add('show');
+            toast(version.toUpperCase()+' salvo offline!');
+          },500);
+          return data;
+        });
+      }
+      chunks.push(d.value); recv+=d.value.length;
+      if(fill) fill.style.width=Math.min(95,(recv/cl)*100)+'%';
+      return read();
+    });}
+    return read();
+  });
+}
+
 // ===== GOТО HOOKS =====
 var _origGoTo = goTo;
 goTo = function(id) {
