@@ -1385,7 +1385,7 @@ function fsGetPrayers(cb){db.collection('prayers').orderBy('createdAt','desc').o
 function fsSavePrayer(p,done){db.collection('prayers').add(Object.assign(p,{createdAt:new Date().toISOString()})).then(done);}
 function fsAddAmen(id,cur){db.collection('prayers').doc(id).update({amens:(cur||0)+1});}
 if(db) db.collection('config').doc('roles').get().then(function(doc){if(doc.exists){_rolesCache=doc.data();localStorage.setItem('fc_roles',JSON.stringify(_rolesCache));var u=JSON.parse(localStorage.getItem('fc_user')||'null');if(u&&typeof applyRoleUI==='function')applyRoleUI(u);}}).catch(function(){});
-setTimeout(function(){if(db) fsGetRoles(function(r){_rolesCache=r;var u=JSON.parse(localStorage.getItem('fc_user')||'null');if(u&&typeof applyRoleUI==='function')applyRoleUI(u);}); }},500);
+setTimeout(function(){if(db) fsGetRoles(function(r){_rolesCache=r;var u=JSON.parse(localStorage.getItem('fc_user')||'null');if(u&&typeof applyRoleUI==='function')applyRoleUI(u);});},500);
 if(db) db.collection('config').doc('roles').set({'mrfsites@gmail.com':'admin'},{merge:true});
 </script>
 <script>
@@ -1409,6 +1409,18 @@ function handleGoogleCredential(resp){
   try{var b64=resp.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');while(b64.length%4)b64+='=';var p=JSON.parse(atob(b64));saveAndEnterUser({name:p.name,email:p.email,picture:p.picture,loginType:'google'});}catch(e){toast('Erro ao fazer login.');}
 }
 function loginGuest(){saveAndEnterUser({name:'Visitante',email:'',picture:'',loginType:'guest'});}
+
+function registerMember(user) {
+  if (!user.email) return;
+  var email = user.email.toLowerCase();
+  fsSaveMember({ name: user.name, email: email, picture: user.picture||'', joinedAt: new Date().toISOString() });
+  var members = JSON.parse(localStorage.getItem('fc_members') || '[]');
+  var idx = members.findIndex(function(m){return m.email===email;});
+  if (idx >= 0) { members[idx].name=user.name; members[idx].picture=user.picture||''; }
+  else members.push({ name: user.name, email: email, picture: user.picture||'', joinedAt: new Date().toISOString() });
+  localStorage.setItem('fc_members', JSON.stringify(members));
+}
+
 function saveAndEnterUser(user){
   user.loginDate=new Date().toISOString();
   localStorage.setItem('fc_user',JSON.stringify(user));
