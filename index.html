@@ -12,6 +12,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="application-name" content="Família IEQ"/>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 :root {
   --bg:#0d0d0f; --bg2:#141418; --bg3:#1c1c22; --bg4:#252530;
@@ -836,8 +838,6 @@ body.light .vnote-in { background:var(--bg4); }
 
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
 // ===== FIREBASE INIT =====
 var firebaseConfig = {
@@ -1365,12 +1365,14 @@ function renderPrayerList() {
 
 </script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
 var firebaseConfig={apiKey:"AIzaSyDrfHUI8hjewzO5cikZEU-9nqUSTeZmgms",authDomain:"familia-em-conexao.firebaseapp.com",projectId:"familia-em-conexao",storageBucket:"familia-em-conexao.firebasestorage.app",messagingSenderId:"709039789133",appId:"1:709039789133:web:1c30b02a6d0da6a0cd3804"};
-firebase.initializeApp(firebaseConfig);
-var db=firebase.firestore();
+if (typeof firebase === 'undefined') {
+  console.error('Firebase SDK not loaded');
+} else {
+  firebase.initializeApp(firebaseConfig);
+}
+var db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
 var _rolesCache={};
 function fsGetMembers(cb){db.collection('members').orderBy('joinedAt','asc').onSnapshot(function(s){var r=[];s.forEach(function(d){r.push(Object.assign({id:d.id},d.data()));});cb(r);},function(){cb([]);});}
 function fsSaveMember(u){if(!u.email)return;db.collection('members').doc(u.email.toLowerCase()).set({name:u.name,email:u.email.toLowerCase(),picture:u.picture||'',joinedAt:u.joinedAt||new Date().toISOString()},{merge:true});}
@@ -1382,9 +1384,9 @@ function fsDeleteAviso(id,done){db.collection('avisos').doc(id).delete().then(do
 function fsGetPrayers(cb){db.collection('prayers').orderBy('createdAt','desc').onSnapshot(function(s){var r=[];s.forEach(function(d){r.push(Object.assign({id:d.id},d.data()));});cb(r);},function(){cb([]);});}
 function fsSavePrayer(p,done){db.collection('prayers').add(Object.assign(p,{createdAt:new Date().toISOString()})).then(done);}
 function fsAddAmen(id,cur){db.collection('prayers').doc(id).update({amens:(cur||0)+1});}
-db.collection('config').doc('roles').get().then(function(doc){if(doc.exists){_rolesCache=doc.data();localStorage.setItem('fc_roles',JSON.stringify(_rolesCache));var u=JSON.parse(localStorage.getItem('fc_user')||'null');if(u&&typeof applyRoleUI==='function')applyRoleUI(u);}}).catch(function(){});
-setTimeout(function(){fsGetRoles(function(r){_rolesCache=r;var u=JSON.parse(localStorage.getItem('fc_user')||'null');if(u&&typeof applyRoleUI==='function')applyRoleUI(u);});},500);
-db.collection('config').doc('roles').set({'mrfsites@gmail.com':'admin'},{merge:true});
+if(db) db.collection('config').doc('roles').get().then(function(doc){if(doc.exists){_rolesCache=doc.data();localStorage.setItem('fc_roles',JSON.stringify(_rolesCache));var u=JSON.parse(localStorage.getItem('fc_user')||'null');if(u&&typeof applyRoleUI==='function')applyRoleUI(u);}}).catch(function(){});
+setTimeout(function(){if(db) fsGetRoles(function(r){_rolesCache=r;var u=JSON.parse(localStorage.getItem('fc_user')||'null');if(u&&typeof applyRoleUI==='function')applyRoleUI(u);}); }},500);
+if(db) db.collection('config').doc('roles').set({'mrfsites@gmail.com':'admin'},{merge:true});
 </script>
 <script>
 window.addEventListener('load',function(){
