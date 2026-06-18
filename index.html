@@ -1354,7 +1354,7 @@ function renderPrayerList() {
         '<div class="prayer-body">' + p.body + '</div>' +
         '<div class="prayer-meta">' +
           '<div class="prayer-date">' + (p.date || '') + '</div>' +
-          '<div class="prayer-amen" onclick="addAmen('' + p.id + '',' + (p.amens||0) + ')">🕊️ Amém (' + (p.amens||0) + ')</div>' +
+          '<div class="prayer-amen" onclick="addAmen(\'' + p.id + '\',' + (p.amens||0) + ')">🕊️ Amém (' + (p.amens||0) + ')</div>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -1362,3 +1362,79 @@ function renderPrayerList() {
 }
 
 
+
+</script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+var firebaseConfig={apiKey:"AIzaSyDrfHUI8hjewzO5cikZEU-9nqUSTeZmgms",authDomain:"familia-em-conexao.firebaseapp.com",projectId:"familia-em-conexao",storageBucket:"familia-em-conexao.firebasestorage.app",messagingSenderId:"709039789133",appId:"1:709039789133:web:1c30b02a6d0da6a0cd3804"};
+firebase.initializeApp(firebaseConfig);
+var db=firebase.firestore();
+var _rolesCache={};
+function fsGetMembers(cb){db.collection('members').orderBy('joinedAt','asc').onSnapshot(function(s){var r=[];s.forEach(function(d){r.push(Object.assign({id:d.id},d.data()));});cb(r);},function(){cb([]);});}
+function fsSaveMember(u){if(!u.email)return;db.collection('members').doc(u.email.toLowerCase()).set({name:u.name,email:u.email.toLowerCase(),picture:u.picture||'',joinedAt:u.joinedAt||new Date().toISOString()},{merge:true});}
+function fsGetRoles(cb){db.collection('config').doc('roles').onSnapshot(function(d){cb(d.exists?d.data():{});},function(){cb({});});}
+function fsSetRole(e,r){var u={};u[e.toLowerCase()]=r;db.collection('config').doc('roles').set(u,{merge:true});}
+function fsGetAvisos(cb){db.collection('avisos').orderBy('createdAt','desc').onSnapshot(function(s){var r=[];s.forEach(function(d){r.push(Object.assign({id:d.id},d.data()));});cb(r);},function(){cb(null);});}
+function fsSaveAviso(a,done){var data={tipo:a.tipo,titulo:a.titulo,desc:a.desc,data:a.data,local:a.local||'',createdAt:a.createdAt||new Date().toISOString()};if(a.id&&typeof a.id==='string'&&a.id.length>10){db.collection('avisos').doc(a.id).set(data).then(done);}else{db.collection('avisos').add(data).then(done);}}
+function fsDeleteAviso(id,done){db.collection('avisos').doc(id).delete().then(done);}
+function fsGetPrayers(cb){db.collection('prayers').orderBy('createdAt','desc').onSnapshot(function(s){var r=[];s.forEach(function(d){r.push(Object.assign({id:d.id},d.data()));});cb(r);},function(){cb([]);});}
+function fsSavePrayer(p,done){db.collection('prayers').add(Object.assign(p,{createdAt:new Date().toISOString()})).then(done);}
+function fsAddAmen(id,cur){db.collection('prayers').doc(id).update({amens:(cur||0)+1});}
+db.collection('config').doc('roles').get().then(function(doc){if(doc.exists){_rolesCache=doc.data();localStorage.setItem('fc_roles',JSON.stringify(_rolesCache));var u=JSON.parse(localStorage.getItem('fc_user')||'null');if(u&&typeof applyRoleUI==='function')applyRoleUI(u);}}).catch(function(){});
+setTimeout(function(){fsGetRoles(function(r){_rolesCache=r;var u=JSON.parse(localStorage.getItem('fc_user')||'null');if(u&&typeof applyRoleUI==='function')applyRoleUI(u);});},500);
+db.collection('config').doc('roles').set({'mrfsites@gmail.com':'admin'},{merge:true});
+</script>
+<script>
+window.addEventListener('load',function(){
+  var saved=JSON.parse(localStorage.getItem('fc_user')||'null');
+  setTimeout(function(){
+    if(saved){
+      var ld=saved.loginDate?new Date(saved.loginDate):null;
+      var ds=ld?(Date.now()-ld.getTime())/86400000:999;
+      if(ds>30){localStorage.removeItem('fc_user');goTo('s-login');return;}
+      applyUser(saved);goTo('s-home');loadVDia();
+    } else {goTo('s-login');}
+  },2200);
+});
+function loginGoogle(){
+  if(typeof google==='undefined'){toast('Aguarde...');setTimeout(loginGoogle,1000);return;}
+  google.accounts.id.initialize({client_id:'471425487980-d45a811h78bqtqfqvs3hte0l1mvj7e5q.apps.googleusercontent.com',callback:handleGoogleCredential,ux_mode:'popup'});
+  google.accounts.id.prompt(function(n){if(n.isNotDisplayed()||n.isSkippedMoment()){var d=document.createElement('div');d.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999';document.body.appendChild(d);google.accounts.id.renderButton(d,{theme:'filled_black',size:'large',text:'signin_with',width:280});}});
+}
+function handleGoogleCredential(resp){
+  try{var b64=resp.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');while(b64.length%4)b64+='=';var p=JSON.parse(atob(b64));saveAndEnterUser({name:p.name,email:p.email,picture:p.picture,loginType:'google'});}catch(e){toast('Erro ao fazer login.');}
+}
+function loginGuest(){saveAndEnterUser({name:'Visitante',email:'',picture:'',loginType:'guest'});}
+function saveAndEnterUser(user){
+  user.loginDate=new Date().toISOString();
+  localStorage.setItem('fc_user',JSON.stringify(user));
+  registerMember(user);applyUser(user);applyRoleUI(user);
+  goTo('s-home');loadVDia();
+  toast('Bem-vindo, '+user.name.split(' ')[0]+'!');
+}
+function applyUser(user){
+  var first=user.name.split(' ')[0];
+  var g=document.getElementById('home-greeting');if(g)g.textContent='Ola, '+first+' ';
+  var av=document.getElementById('user-avatar');if(av)av.innerHTML=user.picture?'<img src="'+user.picture+'" alt=""/>':first.charAt(0).toUpperCase();
+  var ps=document.getElementById('pts-show');if(ps)ps.textContent=S.pts;
+  var mn=document.getElementById('modal-name');if(mn)mn.textContent=user.name;
+  var me=document.getElementById('modal-email');if(me)me.textContent=user.email||'Conta de visitante';
+  var mp=document.getElementById('modal-pts');if(mp)mp.textContent=S.pts;
+  var ma=document.getElementById('modal-avatar');if(ma)ma.innerHTML=user.picture?'<img src="'+user.picture+'" alt=""/>':first.charAt(0).toUpperCase();
+  applyRoleUI(user);
+}
+function openProfile(){document.getElementById('modal-profile').classList.add('show');}
+function closeProfile(e){if(e.target===document.getElementById('modal-profile'))document.getElementById('modal-profile').classList.remove('show');}
+function logout(){
+  localStorage.removeItem('fc_user');
+  if(typeof google!=='undefined'){try{google.accounts.id.disableAutoSelect();}catch(e){}}
+  document.getElementById('modal-profile').classList.remove('show');
+  goTo('s-login');toast('Ate logo!');
+}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
+loadVDia();
+</script>
+</body>
+</html>
