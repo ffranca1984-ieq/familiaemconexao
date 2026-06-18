@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="theme-color" content="#0d0d0f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Família IEQ"/>
+<title>Família em Conexão</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="application-name" content="Família IEQ"/>
+<style>
+:root {
+  --bg:#0d0d0f; --bg2:#141418; --bg3:#1c1c22; --bg4:#252530;
+  --gold:#c9a84c; --gold2:#e2c97e; --gold3:#f5e6b8;
+  --gold-dim:rgba(201,168,76,0.1); --gold-glow:rgba(201,168,76,0.22);
+  --text:#f0ede8; --text2:#9a9490; --text3:#5c5a56;
+  --border:rgba(201,168,76,0.18); --border2:rgba(255,255,255,0.07);
+  --radius:14px; --radius-lg:20px;
+  --success:#5cb87a; --danger:#e05c5c;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100%;overflow:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+
+/* APP SHELL */
+#app{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden}
+.screen.active{display:flex}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;background:var(--bg2);border-bottom:1px solid var(--border2);flex-shrink:0}
+.topbar-left .eyebrow{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:1px}
+.topbar-left .app-name{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.02em}
+.topbar-left .greeting{font-size:12px;color:var(--text2);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.pts-badge{display:flex;align-items:center;gap:5px;background:var(--gold-dim);border:1px solid var(--border);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--gold2);cursor:pointer}
+.icon-btn{width:34px;height:34px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0}
+.icon-btn:hover{background:var(--bg4);color:var(--text)}
+
+/* BACK BAR */
+.back-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border2);flex-shrink:0}
+.back-btn{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s}
+.back-btn:hover{background:var(--bg4);color:var(--text)}
+.back-bar .eyebrow{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.back-bar .page-title{font-size:15px;font-weight:700;color:var(--text)}
+
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* HOME CONTENT */
+.home-content{padding:18px;padding-bottom:28px}
+
+/* VERSÍCULO HERO */
+.v-hero{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:22px;position:relative;overflow:hidden}
+.v-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.v-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:12px}
+.v-text{font-size:15px;line-height:1.72;color:var(--text);font-style:italic;margin-bottom:10px}
+.v-ref{font-size:12px;font-weight:600;color:var(--gold2);display:flex;align-items:center;justify-content:space-between}
+.v-refresh{width:28px;height:28px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border);color:var(--gold);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s}
+.v-refresh:hover{background:var(--gold-glow);transform:rotate(90deg)}
+.loading-box{text-align:center;padding:22px 0}
+.spinner{width:26px;height:26px;border:2px solid var(--bg4);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-box p{font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+
+/* SECTION */
+.sec-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:11px}
+
+/* MODULE GRID */
+.mod-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.mod-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .2s}
+.mod-card:hover,.mod-card:active{background:var(--bg3);border-color:var(--border);transform:translateY(-1px)}
+.mod-card.active-mod{border-color:var(--border);background:var(--bg3)}
+.mod-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:9px}
+.ic-gold{background:var(--gold-dim)} .ic-blue{background:rgba(99,143,230,.1)} .ic-green{background:rgba(92,184,122,.1)}
+.ic-purple{background:rgba(160,100,220,.1)} .ic-orange{background:rgba(230,140,80,.1)} .ic-teal{background:rgba(80,190,180,.1)}
+.mod-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.mod-desc{font-size:11px;color:var(--text2);line-height:1.4}
+.mod-soon{font-size:10px;color:var(--text3);font-style:italic;margin-top:3px}
+
+/* FOOTER */
+.app-footer{padding:20px;text-align:center}
+.app-footer p{font-size:11px;color:var(--text3);letter-spacing:.04em;line-height:1.6}
+.app-footer strong{color:var(--gold);font-weight:600}
+
+/* ===== BÍBLIA ===== */
+.bible-controls{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border2);display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.bible-row1{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sel-wrap{display:flex;flex-direction:column;gap:4px}
+.sel-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
+.b-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:13px;padding:8px 28px 8px 10px;border-radius:8px;outline:none;width:100%;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235c5a56' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;transition:border-color .2s}
+.b-select:focus{border-color:var(--border)}
+.bible-row2{display:flex;align-items:center;justify-content:space-between}
+.version-tabs{display:flex;gap:6px}
+.vtab{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.vtab:hover{color:var(--text2);border-color:rgba(255,255,255,.15)}
+.vtab.active{background:var(--gold-dim);border-color:var(--border);color:var(--gold2)}
+.fs-row{display:flex;align-items:center;gap:6px}
+.fs-row span{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.fs-btn{padding:4px 9px;border-radius:6px;font-size:11px;font-weight:700;background:transparent;border:1px solid var(--border2);color:var(--text3);cursor:pointer;transition:all .15s}
+.fs-btn:hover{color:var(--text2)}
+.fs-btn.active{background:var(--gold-dim);border-color:var(--border);color:var(--gold2)}
+
+/* VERSES */
+.verses-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px}
+.verse-block{display:flex;gap:11px;margin-bottom:18px;padding:10px;border-radius:10px;cursor:pointer;transition:background .15s;border-left:2px solid transparent}
+.verse-block:hover{background:var(--bg3)}
+.verse-block.hl{background:var(--gold-dim);border-left-color:var(--gold)}
+.verse-block.bm .vnum{color:var(--gold2)}
+.vnum{font-size:11px;font-weight:700;color:var(--text3);min-width:18px;padding-top:3px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.vbody{flex:1}
+.vtext{line-height:1.75;color:var(--text)}
+.vtext.sm{font-size:13px} .vtext.base{font-size:15px} .vtext.lg{font-size:17px} .vtext.xl{font-size:19px}
+.vactions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.vact-btn{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .15s}
+.vact-btn:hover{border-color:var(--border);color:var(--gold2)}
+.vact-btn.on{background:var(--gold-dim);border-color:var(--border);color:var(--gold2)}
+.vnote-in{width:100%;margin-top:8px;padding:9px 11px;border-radius:8px;background:var(--bg4);border:1px solid var(--border2);color:var(--text);font-size:12px;resize:none;outline:none;font-family:inherit;line-height:1.5}
+.vnote-in:focus{border-color:var(--border)}
+.saved-note{margin-top:7px;font-size:12px;color:var(--gold2);font-style:italic;border-left:2px solid var(--gold);padding-left:8px;line-height:1.5}
+
+/* BIBLE NAV */
+.bible-nav{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border2);flex-shrink:0}
+.bnav-btn{padding:13px;text-align:center;font-size:13px;font-weight:600;background:var(--bg2);color:var(--text2);cursor:pointer;border:none;transition:all .2s;font-family:inherit}
+.bnav-btn:first-child{border-right:1px solid var(--border2)}
+.bnav-btn:hover{background:var(--bg3);color:var(--text)}
+.bnav-btn.primary{background:var(--gold-dim);color:var(--gold2)}
+.bnav-btn.primary:hover{background:var(--gold-glow)}
+.bnav-btn:disabled{opacity:.3;cursor:default}
+.bnav-btn:disabled:hover{background:var(--bg2);color:var(--text2)}
+
+/* OFFLINE INDICATOR */
+.offline-bar{display:none;align-items:center;justify-content:center;gap:6px;padding:6px;background:rgba(224,92,92,.12);border-bottom:1px solid rgba(224,92,92,.2);font-size:11px;color:#e05c5c;font-weight:600;flex-shrink:0}
+.offline-bar.show{display:flex}
+.cache-bar{display:none;align-items:center;justify-content:center;gap:6px;padding:6px;background:rgba(92,184,122,.08);border-bottom:1px solid rgba(92,184,122,.15);font-size:11px;color:var(--success);font-weight:500;flex-shrink:0}
+.cache-bar.show{display:flex}
+.caching-progress{display:none;padding:8px 16px;background:var(--bg3);border-bottom:1px solid var(--border2);flex-shrink:0}
+.caching-progress.show{display:block}
+.prog-label{font-size:11px;color:var(--text2);margin-bottom:5px}
+.prog-bar{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .3s;width:0%}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg4);border:1px solid var(--border);color:var(--gold2);font-size:13px;font-weight:500;padding:9px 18px;border-radius:20px;transition:transform .3s ease;z-index:999;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ===== SPLASH ===== */
+#s-splash{background:var(--bg);align-items:center;justify-content:center;position:relative;overflow:hidden}
+#s-splash::before{content:'';position:absolute;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-58%);pointer-events:none}
+.splash-logo{width:180px;height:180px;border-radius:30px;opacity:0;transform:scale(0.82);animation:splashIn .65s cubic-bezier(.34,1.56,.64,1) forwards .15s}
+.splash-church{font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;margin-top:22px;opacity:0;animation:fadeUp .5s ease forwards .65s}
+.splash-app{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.025em;margin-top:4px;opacity:0;animation:fadeUp .5s ease forwards .85s}
+.splash-dots{display:flex;gap:7px;margin-top:36px;opacity:0;animation:fadeUp .4s ease forwards 1.1s}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.25;animation:sdpulse 1.3s ease infinite}
+.sdot:nth-child(2){animation-delay:.18s}.sdot:nth-child(3){animation-delay:.36s}
+@keyframes splashIn{to{opacity:1;transform:scale(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sdpulse{0%,100%{opacity:.25}50%{opacity:1}}
+
+/* ===== LOGIN ===== */
+#s-login{background:var(--bg);align-items:center;justify-content:center;padding:28px 24px}
+.login-card{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center}
+.login-logo{width:100px;height:100px;border-radius:22px;margin-bottom:18px}
+.login-church{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-bottom:5px;text-align:center}
+.login-title{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:8px;text-align:center}
+.login-sub{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:30px;text-align:center}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 20px;border-radius:12px;background:#fff;border:none;cursor:pointer;font-size:14px;font-weight:600;color:#3c4043;transition:all .18s;margin-bottom:10px;letter-spacing:.01em;font-family:-apple-system,sans-serif}
+.btn-google:hover{background:#f5f5f5;transform:translateY(-1px)}
+.btn-google:active{transform:scale(.99);background:#efefef}
+.divider-or{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:10px}
+.divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--border2)}
+.divider-or span{font-size:11px;color:var(--text3)}
+.btn-guest{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px 20px;border-radius:12px;background:transparent;border:1px solid var(--border2);cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all .18s;font-family:inherit}
+.btn-guest:hover{background:var(--bg3);border-color:var(--border);color:var(--text)}
+.login-terms{font-size:11px;color:var(--text3);margin-top:18px;line-height:1.6;text-align:center}
+
+/* ===== PROFILE MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-sheet{background:var(--bg2);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:500px;border-top:1px solid var(--border2)}
+.modal-handle{width:36px;height:4px;background:var(--bg4);border-radius:2px;margin:0 auto 18px}
+.modal-user{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border2)}
+.modal-avatar{width:50px;height:50px;border-radius:50%;background:var(--gold-dim);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--gold2);overflow:hidden;flex-shrink:0}
+.modal-avatar img{width:100%;height:100%;object-fit:cover}
+.modal-name{font-size:15px;font-weight:700;color:var(--text)}
+.modal-email{font-size:12px;color:var(--text2);margin-top:2px}
+.modal-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border2);cursor:pointer;transition:opacity .15s}
+.modal-item:last-child{border-bottom:none}
+.modal-item:hover{opacity:.75}
+.modal-item-icon{font-size:17px;width:22px;text-align:center}
+.modal-item-text{font-size:14px;color:var(--text)}
+.modal-item.danger .modal-item-text{color:var(--danger)}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--gold2);cursor:pointer;overflow:hidden;flex-shrink:0}
+.user-avatar img{width:100%;height:100%;object-fit:cover}
+
+
+/* ===== DEVOCIONAL ===== */
+.form-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:18px;margin-bottom:18px}
+.form-card-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+.field input,.field textarea,.field select{background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;font-family:inherit;transition:border-color .2s;width:100%}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--border)}
+.field textarea{resize:none;line-height:1.55}
+.btn-primary{width:100%;padding:13px;border-radius:12px;background:var(--gold);border:none;color:#0d0d0f;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;letter-spacing:.02em}
+.btn-primary:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-primary:active{transform:scale(.99)}
+.list-section{margin-top:4px}
+.list-section-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:10px}
+.entry-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.entry-date{font-size:10px;color:var(--text3);margin-bottom:5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.entry-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.entry-ref{font-size:12px;color:var(--gold2);margin-bottom:7px;font-weight:500}
+.entry-body{font-size:13px;color:var(--text2);line-height:1.55}
+.empty-state{text-align:center;padding:36px 20px}
+.empty-icon{font-size:34px;margin-bottom:10px;opacity:.35}
+.empty-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:5px}
+.empty-desc{font-size:12px;color:var(--text3);line-height:1.5}
+
+/* ===== ORAÇÃO ===== */
+.prayer-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.prayer-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.prayer-for{font-size:13px;font-weight:700;color:var(--text)}
+.prayer-body{font-size:13px;color:var(--text2);line-height:1.5}
+.prayer-meta{display:flex;align-items:center;justify-content:space-between;margin-top:2px}
+.prayer-date{font-size:10px;color:var(--text3)}
+.prayer-amen{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--gold2);background:var(--gold-dim);border:1px solid var(--border);border-radius:20px;padding:3px 10px;cursor:pointer;transition:all .15s}
+.prayer-amen:hover{background:var(--gold-glow)}
+.prayer-anon{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-top:2px;cursor:pointer}
+.prayer-anon input{accent-color:var(--gold);width:14px;height:14px}
+
+/* ===== GINCANA ===== */
+.quiz-wrap{display:flex;flex-direction:column;flex:1;padding:20px;overflow-y:auto}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.quiz-prog-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+.quiz-pts-label{font-size:12px;font-weight:700;color:var(--gold2);background:var(--gold-dim);border:1px solid var(--border);border-radius:20px;padding:3px 10px}
+.quiz-prog-bar{height:4px;background:var(--bg4);border-radius:2px;margin-bottom:20px;overflow:hidden}
+.quiz-prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .4s ease}
+.quiz-question{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:20px;margin-bottom:18px;font-size:16px;font-weight:600;color:var(--text);line-height:1.55}
+.quiz-options{display:flex;flex-direction:column;gap:10px}
+.quiz-opt{padding:14px 16px;border-radius:12px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:14px;font-weight:500;cursor:pointer;transition:all .18s;text-align:left;font-family:inherit}
+.quiz-opt:hover{background:var(--bg3);border-color:var(--border)}
+.quiz-opt.correct{background:rgba(92,184,122,.15);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(224,92,92,.12);border-color:var(--danger);color:var(--danger)}
+.quiz-opt:disabled{cursor:default}
+.quiz-feedback{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:13px;font-weight:600;text-align:center}
+.quiz-feedback.ok{background:rgba(92,184,122,.1);color:var(--success)}
+.quiz-feedback.err{background:rgba(224,92,92,.08);color:var(--danger)}
+.quiz-next-btn{margin-top:14px;width:100%;padding:13px;border-radius:12px;background:var(--gold);border:none;color:#0d0d0f;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.quiz-result{text-align:center;padding:30px 20px}
+.quiz-result-icon{font-size:52px;margin-bottom:12px}
+.quiz-result-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px}
+.quiz-result-sub{font-size:14px;color:var(--text2);margin-bottom:6px}
+.quiz-result-pts{font-size:18px;font-weight:700;color:var(--gold2);background:var(--gold-dim);border:1px solid var(--border);border-radius:12px;padding:10px 20px;display:inline-block;margin:14px 0}
+.quiz-restart{margin-top:6px;padding:13px 30px;border-radius:12px;background:var(--gold);border:none;color:#0d0d0f;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* ===== PLANO LEITURA ===== */
+.plan-tabs{display:flex;gap:8px;padding:14px 16px;background:var(--bg2);border-bottom:1px solid var(--border2);overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.plan-tabs::-webkit-scrollbar{display:none}
+.ptab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit}
+.ptab:hover{color:var(--text2)}
+.ptab.active{background:var(--gold-dim);border-color:var(--border);color:var(--gold2)}
+.plan-item{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:12px;margin-bottom:8px;background:var(--bg2);border:1px solid var(--border2);cursor:pointer;transition:all .15s}
+.plan-item.done{background:rgba(92,184,122,.06);border-color:rgba(92,184,122,.2)}
+.plan-item:hover{border-color:var(--border)}
+.plan-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:12px}
+.plan-item.done .plan-check{background:var(--success);border-color:var(--success);color:#fff}
+.plan-item-label{font-size:14px;color:var(--text);font-weight:500}
+.plan-item.done .plan-item-label{color:var(--text2);text-decoration:line-through}
+.plan-item-ref{font-size:11px;color:var(--text3);margin-top:1px}
+.plan-progress-bar{height:6px;background:var(--bg4);border-radius:3px;margin:0 16px 16px;overflow:hidden;flex-shrink:0}
+.plan-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--success));border-radius:3px;transition:width .4s ease}
+.plan-progress-label{font-size:11px;color:var(--text3);padding:0 16px;margin-bottom:8px;font-weight:600;flex-shrink:0}
+
+/* ===== AVISOS ===== */
+.aviso-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.aviso-type{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.aviso-type.culto{color:#638fe6}.aviso-type.evento{color:var(--gold)}.aviso-type.aviso{color:var(--success)}.aviso-type.urgente{color:var(--danger)}
+.aviso-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.aviso-desc{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.aviso-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3)}
+.aviso-dot{width:4px;height:4px;border-radius:50%;background:var(--text3)}
+
+
+/* ===== LIGHT THEME ===== */
+body.light {
+  --bg:#f5f4f0; --bg2:#ffffff; --bg3:#ede9e1; --bg4:#ddd8ce;
+  --gold:#a07830; --gold2:#8a6420; --gold3:#5a3e10;
+  --gold-dim:rgba(160,120,48,0.1); --gold-glow:rgba(160,120,48,0.2);
+  --text:#1a1814; --text2:#5a5650; --text3:#9a9490;
+  --border:rgba(160,120,48,0.22); --border2:rgba(0,0,0,0.08);
+  --success:#2e7d4f; --danger:#b03030;
+}
+body.light .topbar,
+body.light .back-bar,
+body.light .bible-controls,
+body.light .font-size-bar,
+body.light .bottom-nav,
+body.light .modal-sheet,
+body.light .plan-tabs { background: var(--bg2); }
+body.light .btn-google { background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.12); }
+body.light .login-card { background: transparent; }
+
+/* THEME TOGGLE BUTTON */
+.theme-toggle {
+  width:34px; height:34px; border-radius:50%;
+  background:var(--bg3); border:1px solid var(--border2);
+  color:var(--text2); font-size:16px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .2s; flex-shrink:0;
+}
+.theme-toggle:hover { background:var(--bg4); }
+
+/* LIGHT adjustments for verse hero */
+body.light .v-hero::before { background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+body.light .verse-block.hl { background:rgba(160,120,48,0.08); }
+body.light .quiz-opt { background:var(--bg2); }
+body.light .entry-card,
+body.light .prayer-card,
+body.light .aviso-card,
+body.light .plan-item { background:var(--bg2); }
+body.light .form-card { background:var(--bg2); }
+body.light .field input,
+body.light .field textarea { background:var(--bg3); }
+body.light .vact-btn { background:var(--bg3); }
+body.light .vnote-in { background:var(--bg4); }
+
+/* ===== DEVOCIONAL IA ===== */
+.devo-ia-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:20px; margin-bottom:18px;
+  position:relative; overflow:hidden;
+}
+.devo-ia-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.devo-ia-verse {
+  font-size:16px; font-style:italic; font-weight:600;
+  color:var(--text); line-height:1.65; margin-bottom:10px;
+}
+.devo-ia-ref {
+  font-size:12px; font-weight:700; color:var(--gold);
+  letter-spacing:.06em; margin-bottom:16px;
+  display:flex; align-items:center; gap:6px;
+}
+.devo-ia-section-label {
+  font-size:10px; font-weight:700; letter-spacing:.12em;
+  color:var(--text3); text-transform:uppercase; margin-bottom:8px;
+}
+.devo-ia-reflexao {
+  font-size:14px; color:var(--text2); line-height:1.7;
+  margin-bottom:16px;
+}
+.devo-ia-passo {
+  background:var(--gold-dim); border:1px solid var(--border);
+  border-radius:12px; padding:14px;
+}
+.devo-ia-passo-label {
+  font-size:10px; font-weight:700; letter-spacing:.12em;
+  color:var(--gold); text-transform:uppercase; margin-bottom:6px;
+}
+.devo-ia-passo-text {
+  font-size:13px; color:var(--text); line-height:1.6; font-weight:500;
+}
+.devo-ia-loading {
+  text-align:center; padding:30px 0;
+}
+.devo-ia-loading p { font-size:12px; color:var(--text3); margin-top:10px; letter-spacing:.06em; }
+.devo-ia-error {
+  text-align:center; padding:20px;
+  font-size:13px; color:var(--danger);
+}
+.devo-ia-refresh {
+  display:flex; align-items:center; justify-content:flex-end; margin-top:12px;
+}
+.btn-refresh-ia {
+  display:flex; align-items:center; gap:5px;
+  font-size:11px; font-weight:600; color:var(--text3);
+  background:var(--bg3); border:1px solid var(--border2);
+  border-radius:20px; padding:5px 12px; cursor:pointer;
+  transition:all .2s;
+}
+.btn-refresh-ia:hover { color:var(--gold); border-color:var(--border); }
+
+
+/* ===== ROLES & ADMIN ===== */
+.role-badge {
+  font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  padding:2px 9px; border-radius:20px; display:inline-flex; align-items:center; gap:4px;
+}
+.role-membro  { background:rgba(99,143,230,.12); color:#638fe6; border:1px solid rgba(99,143,230,.25); }
+.role-lider   { background:rgba(160,100,220,.12); color:#a064dc; border:1px solid rgba(160,100,220,.25); }
+.role-pastor  { background:var(--gold-dim); color:var(--gold); border:1px solid var(--border); }
+
+/* Admin fab button */
+.admin-fab {
+  position:fixed; bottom:24px; right:20px; z-index:50;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--gold); border:none; color:#0d0d0f;
+  font-size:22px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:0 4px 16px rgba(201,168,76,.4);
+  transition:all .2s;
+}
+.admin-fab:hover { transform:scale(1.08); }
+
+/* Admin modal */
+.admin-modal {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.7); z-index:200;
+  align-items:flex-end; justify-content:center;
+}
+.admin-modal.show { display:flex; }
+.admin-sheet {
+  background:var(--bg2); border-radius:20px 20px 0 0;
+  width:100%; max-width:500px;
+  max-height:90vh; display:flex; flex-direction:column;
+  border-top:1px solid var(--border2);
+}
+.admin-sheet-header {
+  padding:16px 18px; border-bottom:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+.admin-sheet-title { font-size:15px; font-weight:700; color:var(--text); }
+.admin-close {
+  width:30px; height:30px; border-radius:50%; background:var(--bg3);
+  border:none; color:var(--text2); font-size:16px;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.admin-tabs {
+  display:flex; border-bottom:1px solid var(--border2); flex-shrink:0;
+}
+.admin-tab {
+  flex:1; padding:11px; text-align:center; font-size:12px; font-weight:700;
+  color:var(--text3); cursor:pointer; border:none; background:transparent;
+  border-bottom:2px solid transparent; transition:all .15s; font-family:inherit;
+}
+.admin-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+.admin-body { flex:1; overflow-y:auto; padding:16px; }
+
+/* Aviso form */
+.aviso-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:0; }
+.tipo-btn {
+  padding:8px; border-radius:8px; font-size:11px; font-weight:700;
+  border:1px solid var(--border2); background:var(--bg3); color:var(--text2);
+  cursor:pointer; text-align:center; transition:all .15s; font-family:inherit;
+  text-transform:uppercase; letter-spacing:.06em;
+}
+.tipo-btn.selected-culto   { background:rgba(99,143,230,.15); border-color:#638fe6; color:#638fe6; }
+.tipo-btn.selected-evento  { background:var(--gold-dim); border-color:var(--gold); color:var(--gold2); }
+.tipo-btn.selected-aviso   { background:rgba(92,184,122,.1); border-color:var(--success); color:var(--success); }
+.tipo-btn.selected-urgente { background:rgba(224,92,92,.1); border-color:var(--danger); color:var(--danger); }
+
+/* Member row */
+.member-row {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 0; border-bottom:1px solid var(--border2);
+}
+.member-row:last-child { border-bottom:none; }
+.member-avatar-sm {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--gold-dim); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:700; color:var(--gold2);
+  overflow:hidden; flex-shrink:0;
+}
+.member-avatar-sm img { width:100%; height:100%; object-fit:cover; }
+.member-info { flex:1; min-width:0; }
+.member-name { font-size:13px; font-weight:600; color:var(--text); }
+.member-email { font-size:11px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.role-select {
+  background:var(--bg3); border:1px solid var(--border2); color:var(--text);
+  font-size:11px; font-weight:600; padding:5px 8px; border-radius:8px;
+  outline:none; cursor:pointer; font-family:inherit;
+}
+.role-select:focus { border-color:var(--border); }
+
+/* Aviso admin card */
+.aviso-admin-card {
+  background:var(--bg2); border:1px solid var(--border2); border-radius:12px;
+  padding:12px 14px; margin-bottom:8px;
+}
+.aviso-admin-actions {
+  display:flex; gap:6px; margin-top:10px;
+}
+.btn-edit {
+  flex:1; padding:7px; border-radius:8px; font-size:11px; font-weight:700;
+  background:var(--gold-dim); border:1px solid var(--border); color:var(--gold2);
+  cursor:pointer; font-family:inherit; transition:all .15s;
+}
+.btn-edit:hover { background:var(--gold-glow); }
+.btn-delete {
+  padding:7px 12px; border-radius:8px; font-size:11px; font-weight:700;
+  background:rgba(224,92,92,.1); border:1px solid rgba(224,92,92,.25); color:var(--danger);
+  cursor:pointer; font-family:inherit; transition:all .15s;
+}
+.btn-delete:hover { background:rgba(224,92,92,.18); }
+.btn-save-aviso {
+  width:100%; padding:12px; border-radius:10px; background:var(--gold);
+  border:none; color:#0d0d0f; font-size:13px; font-weight:700;
+  cursor:pointer; font-family:inherit; margin-top:12px; transition:all .2s;
+}
+.btn-save-aviso:hover { background:var(--gold2); }
+
+/* Role badge in topbar greeting */
+.topbar-role { font-size:10px; font-weight:700; letter-spacing:.08em; }
+
+
+.role-badge.role-admin { background:rgba(220,50,50,.12); color:#dc3232; border:1px solid rgba(220,50,50,.25); }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== HOME ===== -->
+
+<!-- ===== SPLASH ===== -->
+<div class="screen active" id="s-splash">
+  <img class="splash-logo" src="icon-512.png" alt="Logo IEQ Família em Conexão"/>
+  <div class="splash-church">Igreja do Evangelho Quadrangular</div>
+  <div class="splash-app">Família em Conexão</div>
+  <div class="splash-dots">
+    <div class="sdot"></div><div class="sdot"></div><div class="sdot"></div>
+  </div>
+</div>
+
+<!-- ===== LOGIN ===== -->
+<div class="screen" id="s-login">
+  <div class="login-card">
+    <img class="login-logo" src="icon-512.png" alt="Logo"/>
+    <div class="login-church">Igreja do Evangelho Quadrangular</div>
+    <div class="login-title">Família em Conexão</div>
+    <div class="login-sub">Caminhando juntos na graça e no conhecimento de Jesus Cristo</div>
+    <button class="btn-google" onclick="loginGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.31z"/></svg>
+      Entrar com Google
+    </button>
+    <div class="divider-or"><span>ou</span></div>
+    <button class="btn-guest" onclick="loginGuest()">👤 Continuar sem conta</button>
+    <div class="login-terms">Ao entrar, você concorda com os termos de uso.<br/>Seus dados ficam salvos apenas neste dispositivo.</div>
+  </div>
+</div>
+
+<div class="screen" id="s-home">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="eyebrow">Quadrangular</div>
+      <div class="app-name">Família em Conexão</div>
+      <div class="greeting" id="home-greeting">Olá, Fernando 👋</div>
+    </div>
+    <div class="topbar-right">
+      <div class="pts-badge">⭐ <span id="pts-show">0</span> PTS</div>
+      <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Alternar tema">☀️</div>
+      <div class="user-avatar" id="user-avatar" onclick="openProfile()">?</div>
+    </div>
+  </div>
+
+  <div class="scroll">
+    <div class="home-content">
+      <div class="v-hero">
+        <div class="v-tag">⭐ Versículo do Dia</div>
+        <div id="v-content"><div class="loading-box"><div class="spinner"></div><p>Buscando versículo...</p></div></div>
+      </div>
+
+      <div class="sec-title">Espaço da Fé e Comunhão</div>
+      <div class="mod-grid">
+        <div class="mod-card active-mod" onclick="goTo('s-bible')">
+          <div class="mod-icon ic-gold">📖</div>
+          <div class="mod-name">Bíblia Sagrada</div>
+          <div class="mod-desc">Leia, marque, destaque e anote versículos.</div>
+        </div>
+        <div class="mod-card" onclick="goTo('s-devo')">
+          <div class="mod-icon ic-blue">🏷️</div>
+          <div class="mod-name">Devocional Diário</div>
+          <div class="mod-desc">Meditações e lições diárias.</div>
+        </div>
+        <div class="mod-card" onclick="goTo('s-oracao')">
+          <div class="mod-icon ic-green">🙏</div>
+          <div class="mod-name">Pedidos de Oração</div>
+          <div class="mod-desc">Compartilhe clamores em união.</div>
+        </div>
+        <div class="mod-card" onclick="goTo('s-quiz');initQuiz()">
+          <div class="mod-icon ic-orange">🏆</div>
+          <div class="mod-name">Gincana Bíblica</div>
+          <div class="mod-desc">Quiz e acumule pontos.</div>
+        </div>
+        <div class="mod-card" onclick="goTo('s-plano');initPlano()">
+          <div class="mod-icon ic-purple">📋</div>
+          <div class="mod-name">Planos de Leitura</div>
+          <div class="mod-desc">Sua rotina diária na Palavra.</div>
+        </div>
+        <div class="mod-card" onclick="goTo('s-avisos');renderAvisos()">
+          <div class="mod-icon ic-teal">🔔</div>
+          <div class="mod-name">Avisos da Igreja</div>
+          <div class="mod-desc">Agenda e eventos da semana.</div>
+        </div>
+        <div class="mod-card" id="admin-mod-card" style="display:none;border-color:var(--border);background:var(--bg3)" onclick="goTo('s-avisos');renderAvisos();setTimeout(openAdminModal,300)">
+          <div class="mod-icon ic-gold">⚙️</div>
+          <div class="mod-name">Painel Admin</div>
+          <div class="mod-desc">Gerenciar membros e avisos.</div>
+        </div>
+      </div>
+    </div>
+    <div class="app-footer">
+      <p><strong>Família em Conexão IEQ 2026</strong></p>
+      <p>Caminhando juntos na graça e no conhecimento de Jesus Cristo</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BÍBLIA ===== -->
+<div class="screen" id="s-bible">
+  <div class="back-bar">
+    <div class="back-btn" onclick="goTo('s-home')">←</div>
+    <div>
+      <div class="eyebrow">Bíblia Sagrada</div>
+      <div class="page-title" id="b-title">Gênesis 1</div>
+    </div>
+  </div>
+
+  <div class="offline-bar" id="offline-bar">📵 Sem conexão — usando versão em cache</div>
+  <div class="cache-bar" id="cache-bar">✅ Bíblia disponível offline neste dispositivo</div>
+  <div class="caching-progress" id="caching-prog">
+    <div class="prog-label" id="prog-label">Salvando para uso offline...</div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+  </div>
+
+  <div class="bible-controls">
+    <div class="bible-row1">
+      <div class="sel-wrap">
+        <span class="sel-label">Livro</span>
+        <select class="b-select" id="sel-book" onchange="onBookChange()"></select>
+      </div>
+      <div class="sel-wrap">
+        <span class="sel-label">Capítulo</span>
+        <select class="b-select" id="sel-chap" onchange="onChapChange()"></select>
+      </div>
+    </div>
+    <div class="bible-row2">
+      <div class="version-tabs" id="vtabs">
+        <button class="vtab active" onclick="setVersion('nvi',this)">NVI</button>
+        <button class="vtab" onclick="setVersion('acf',this)">ACF</button>
+        <button class="vtab" onclick="setVersion('ara',this)">ARA</button>
+      </div>
+      <div class="fs-row">
+        <span>Tamanho</span>
+        <button class="fs-btn" onclick="setFs('sm',this)">SM</button>
+        <button class="fs-btn active" onclick="setFs('base',this)">BASE</button>
+        <button class="fs-btn" onclick="setFs('lg',this)">LG</button>
+        <button class="fs-btn" onclick="setFs('xl',this)">XL</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="verses-area" id="verses-area"></div>
+
+  <div class="bible-nav">
+    <button class="bnav-btn" id="btn-prev" onclick="prevChap()">← Cap. Anterior</button>
+    <button class="bnav-btn primary" id="btn-next" onclick="nextChap()">Próximo Cap. →</button>
+  </div>
+</div>
+
+
+
+<!-- ===== DEVOCIONAL ===== -->
+<div class="screen" id="s-devo">
+  <div class="back-bar">
+    <div class="back-btn" onclick="goTo('s-home')">←</div>
+    <div>
+      <div class="eyebrow">Intimidade</div>
+      <div class="page-title">Devocional Diário</div>
+    </div>
+    <div class="theme-toggle" style="margin-left:auto" onclick="toggleTheme()">☀️</div>
+  </div>
+  <div class="scroll">
+    <div style="padding:18px 16px 28px">
+      <div id="devo-ia-wrap">
+        <div class="devo-ia-loading"><div class="spinner"></div><p>GERANDO DEVOCIONAL...</p></div>
+      </div>
+      <div class="form-card" style="margin-top:4px">
+        <div class="form-card-title">📝 Minha Anotação</div>
+        <div class="field"><label>O que Deus falou ao meu coração hoje?</label><textarea id="devo-texto" rows="5" placeholder="Escreva livremente sua reflexão pessoal..."></textarea></div>
+        <button class="btn-primary" onclick="saveDevo()">✓ Salvar Anotação</button>
+      </div>
+      <div class="list-section">
+        <div class="list-section-title">Minhas Anotações Anteriores</div>
+        <div id="devo-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PEDIDOS DE ORAÇÃO ===== -->
+<div class="screen" id="s-oracao">
+  <div class="back-bar">
+    <div class="back-btn" onclick="goTo('s-home')">←</div>
+    <div>
+      <div class="eyebrow">Comunhão</div>
+      <div class="page-title">Pedidos de Oração</div>
+    </div>
+  </div>
+  <div class="scroll">
+    <div style="padding:18px 16px 28px">
+      <div class="form-card">
+        <div class="form-card-title">🙏 Escrever Clamor</div>
+        <div class="field"><label>Por quem ou pelo que deseja oração?</label><input type="text" id="prayer-for" placeholder="Ex: Pela cura do meu tio / Pela minha família"/></div>
+        <div class="field"><label>Detalhes do Clamor</label><textarea id="prayer-body" rows="4" placeholder="Escreva como a igreja pode orar por você..."></textarea></div>
+        <div class="prayer-anon"><input type="checkbox" id="prayer-anon"/><span>Compartilhar anonimamente</span></div>
+        <br/>
+        <button class="btn-primary" onclick="savePrayer()">🕊️ Compartilhar com a Igreja</button>
+      </div>
+      <div class="list-section">
+        <div class="list-section-title">Mural de Orações</div>
+        <div id="prayer-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GINCANA BÍBLICA ===== -->
+<div class="screen" id="s-quiz">
+  <div class="back-bar">
+    <div class="back-btn" onclick="goTo('s-home')">←</div>
+    <div>
+      <div class="eyebrow">Desafiar Mentário</div>
+      <div class="page-title">Quiz Gincana Bíblica</div>
+    </div>
+    <div style="margin-left:auto;font-size:12px;font-weight:700;color:var(--gold2);background:var(--gold-dim);border:1px solid var(--border);border-radius:20px;padding:4px 12px">⭐ <span id="quiz-pts-top">0</span> PTS</div>
+  </div>
+  <div id="quiz-area" class="quiz-wrap"></div>
+</div>
+
+<!-- ===== PLANOS DE LEITURA ===== -->
+<div class="screen" id="s-plano">
+  <div class="back-bar">
+    <div class="back-btn" onclick="goTo('s-home')">←</div>
+    <div>
+      <div class="eyebrow">Rotinas</div>
+      <div class="page-title">Planos de Leitura</div>
+    </div>
+  </div>
+  <div class="plan-tabs" id="plan-tabs"></div>
+  <div class="plan-progress-label" id="plan-prog-label">0 de 0 dias concluídos</div>
+  <div class="plan-progress-bar"><div class="plan-progress-fill" id="plan-prog-fill" style="width:0%"></div></div>
+  <div class="scroll">
+    <div style="padding:12px 16px 28px" id="plan-list"></div>
+  </div>
+</div>
+
+<!-- ===== AVISOS DA IGREJA ===== -->
+<div class="screen" id="s-avisos">
+  <div class="back-bar">
+    <div class="back-btn" onclick="goTo('s-home')">←</div>
+    <div>
+      <div class="eyebrow">Igreja</div>
+      <div class="page-title">Avisos da Igreja</div>
+    </div>
+    <div id="avisos-admin-badge" style="margin-left:auto;display:none">
+      <span class="role-badge role-pastor" id="avisos-role-badge">Pastor</span>
+    </div>
+  </div>
+  <div class="scroll">
+    <div style="padding:16px;padding-bottom:90px" id="avisos-list"></div>
+  </div>
+  <button class="admin-fab" id="admin-fab" style="display:none" onclick="openAdminModal()">✏️</button>
+</div>
+
+<!-- ===== ADMIN MODAL ===== -->
+<div class="admin-modal" id="admin-modal" onclick="closeAdminModalOutside(event)">
+  <div class="admin-sheet">
+    <div class="admin-sheet-header">
+      <div class="admin-sheet-title">⚙️ Painel Administrativo</div>
+      <button class="admin-close" onclick="closeAdminModal()">✕</button>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('avisos',this)">📢 Avisos</button>
+      <button class="admin-tab" onclick="switchAdminTab('membros',this)">👥 Membros</button>
+    </div>
+    <div class="admin-body" id="admin-body"></div>
+  </div>
+</div>
+
+<!-- ===== VERSÍCULOS SALVOS ===== -->
+<div class="screen" id="s-saved">
+  <div class="back-bar">
+    <div class="back-btn" onclick="goTo('s-home')">←</div>
+    <div><div class="eyebrow">Meu Perfil</div><div class="page-title">Versículos Salvos</div></div>
+  </div>
+  <div class="scroll">
+    <div style="padding:16px;padding-bottom:28px" id="saved-list"></div>
+  </div>
+</div>
+
+<!-- ===== MINHAS ANOTAÇÕES ===== -->
+<div class="screen" id="s-notes">
+  <div class="back-bar">
+    <div class="back-btn" onclick="goTo('s-home')">←</div>
+    <div><div class="eyebrow">Meu Perfil</div><div class="page-title">Minhas Anotações</div></div>
+  </div>
+  <div class="scroll">
+    <div style="padding:16px;padding-bottom:28px" id="notes-list"></div>
+  </div>
+</div>
+
+<!-- ===== PROFILE MODAL ===== -->
+<div class="modal-overlay" id="modal-profile" onclick="closeProfile(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-user">
+      <div class="modal-avatar" id="modal-avatar">?</div>
+      <div>
+        <div class="modal-name" id="modal-name">Visitante</div>
+        <div class="modal-email" id="modal-email">Sem conta</div>
+        <div style="margin-top:5px" id="modal-role-wrap"></div>
+      </div>
+    </div>
+    <div class="modal-item"><div class="modal-item-icon">⭐</div><div class="modal-item-text">Meus pontos: <strong id="modal-pts">0</strong></div></div>
+    <div class="modal-item" onclick="closeProfileAndGo('s-saved')"><div class="modal-item-icon">🔖</div><div class="modal-item-text">Versículos salvos</div></div>
+    <div class="modal-item" onclick="closeProfileAndGo('s-notes')"><div class="modal-item-icon">📝</div><div class="modal-item-text">Minhas anotações</div></div>
+    <div class="modal-item" id="modal-admin-btn" style="display:none" onclick="closeProfileOpenAdmin()"><div class="modal-item-icon">⚙️</div><div class="modal-item-text" style="color:var(--gold2)">Painel Admin — Membros & Avisos</div></div>
+    <div class="modal-item danger" onclick="logout()"><div class="modal-item-icon">🚪</div><div class="modal-item-text">Sair da conta</div></div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// ===== FIREBASE INIT =====
+var firebaseConfig = {
+  apiKey: "AIzaSyDrfHUI8hjewzO5cikZEU-9nqUSTeZmgms",
+  authDomain: "familia-em-conexao.firebaseapp.com",
+  projectId: "familia-em-conexao",
+  storageBucket: "familia-em-conexao.firebasestorage.app",
+  messagingSenderId: "709039789133",
+  appId: "1:709039789133:web:1c30b02a6d0da6a0cd3804"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+// ===== FIRESTORE HELPERS =====
+
+// MEMBERS
+function fsGetMembers(callback) {
+  db.collection('members').orderBy('joinedAt','asc').onSnapshot(function(snap) {
+    var members = [];
+    snap.forEach(function(doc) { members.push(Object.assign({id: doc.id}, doc.data())); });
+    callback(members);
+  }, function(err) {
+    console.warn('Firestore members error:', err);
+    callback([]);
+  });
+}
+
+function fsSaveMember(user) {
+  if (!user.email) return;
+  var email = user.email.toLowerCase();
+  db.collection('members').doc(email).set({
+    name: user.name,
+    email: email,
+    picture: user.picture || '',
+    joinedAt: user.joinedAt || new Date().toISOString()
+  }, { merge: true });
+}
+
+function fsGetRoles(callback) {
+  db.collection('config').doc('roles').onSnapshot(function(doc) {
+    callback(doc.exists ? doc.data() : {});
+  }, function() { callback({}); });
+}
+
+function fsSetRole(email, role) {
+  var update = {};
+  update[email.toLowerCase()] = role;
+  db.collection('config').doc('roles').set(update, { merge: true });
+}
+
+// AVISOS
+function fsGetAvisos(callback) {
+  db.collection('avisos').orderBy('createdAt','desc').onSnapshot(function(snap) {
+    var avisos = [];
+    snap.forEach(function(doc) { avisos.push(Object.assign({id: doc.id}, doc.data())); });
+    callback(avisos);
+  }, function() { callback(null); });
+}
+
+function fsSaveAviso(aviso, onDone) {
+  var data = {
+    tipo: aviso.tipo, titulo: aviso.titulo, desc: aviso.desc,
+    data: aviso.data, local: aviso.local || '',
+    createdAt: aviso.createdAt || new Date().toISOString()
+  };
+  if (aviso.id && typeof aviso.id === 'string' && aviso.id.length > 10) {
+    db.collection('avisos').doc(aviso.id).set(data).then(onDone);
+  } else {
+    db.collection('avisos').add(data).then(onDone);
+  }
+}
+
+function fsDeleteAviso(id, onDone) {
+  db.collection('avisos').doc(id).delete().then(onDone);
+}
+
+// PRAYERS
+function fsGetPrayers(callback) {
+  db.collection('prayers').orderBy('createdAt','desc').onSnapshot(function(snap) {
+    var list = [];
+    snap.forEach(function(doc) { list.push(Object.assign({id: doc.id}, doc.data())); });
+    callback(list);
+  }, function() { callback([]); });
+}
+
+function fsSavePrayer(prayer, onDone) {
+  db.collection('prayers').add(Object.assign(prayer, {createdAt: new Date().toISOString()})).then(onDone);
+}
+
+function fsAddAmen(id, currentAmens) {
+  db.collection('prayers').doc(id).update({ amens: (currentAmens||0) + 1 });
+}
+
+var _rolesCache = {};
+var _membersCache = [];
+
+// Load roles from Firestore immediately on startup
+db.collection('config').doc('roles').get().then(function(doc) {
+  if (doc.exists) {
+    _rolesCache = doc.data();
+    localStorage.setItem('fc_roles', JSON.stringify(_rolesCache));
+    // Re-apply UI if user already loaded
+    var u = JSON.parse(localStorage.getItem('fc_user') || 'null');
+    if (u) applyRoleUI(u);
+  }
+}).catch(function(e) {
+  console.warn('Could not load roles:', e);
+});
+
+// Start listening to roles globally
+fsGetRoles(function(roles) {
+  _rolesCache = roles;
+});
+</script>
+
+</body>
+
+<script>
+// ===== STATE =====
+const S = {
+  pts: 0,
+  version: 'nvi',
+  fontSize: 'base',
+  book: 0,
+  chap: 0,
+  bibleCache: {},
+  highlights: JSON.parse(localStorage.getItem('fc_hl')||'{}'),
+  bookmarks: JSON.parse(localStorage.getItem('fc_bm')||'{}'),
+  notes: JSON.parse(localStorage.getItem('fc_nt')||'{}'),
+};
+
+const BOOKS = [
+  {n:'Gênesis',c:50},{n:'Êxodo',c:40},{n:'Levítico',c:27},{n:'Números',c:36},
+  {n:'Deuteronômio',c:34},{n:'Josué',c:24},{n:'Juízes',c:21},{n:'Rute',c:4},
+  {n:'1 Samuel',c:31},{n:'2 Samuel',c:24},{n:'1 Reis',c:22},{n:'2 Reis',c:25},
+  {n:'1 Crônicas',c:29},{n:'2 Crônicas',c:36},{n:'Esdras',c:10},{n:'Neemias',c:13},
+  {n:'Ester',c:10},{n:'Jó',c:42},{n:'Salmos',c:150},{n:'Provérbios',c:31},
+  {n:'Eclesiastes',c:12},{n:'Cânticos',c:8},{n:'Isaías',c:66},{n:'Jeremias',c:52},
+  {n:'Lamentações',c:5},{n:'Ezequiel',c:48},{n:'Daniel',c:12},{n:'Oséias',c:14},
+  {n:'Joel',c:3},{n:'Amós',c:9},{n:'Obadias',c:1},{n:'Jonas',c:4},
+  {n:'Miquéias',c:7},{n:'Naum',c:3},{n:'Habacuque',c:3},{n:'Sofonias',c:3},
+  {n:'Ageu',c:2},{n:'Zacarias',c:14},{n:'Malaquias',c:4},{n:'Mateus',c:28},
+  {n:'Marcos',c:16},{n:'Lucas',c:24},{n:'João',c:21},{n:'Atos',c:28},
+  {n:'Romanos',c:16},{n:'1 Coríntios',c:16},{n:'2 Coríntios',c:13},
+  {n:'Gálatas',c:6},{n:'Efésios',c:6},{n:'Filipenses',c:4},{n:'Colossenses',c:4},
+  {n:'1 Tessalonicenses',c:5},{n:'2 Tessalonicenses',c:3},{n:'1 Timóteo',c:6},
+  {n:'2 Timóteo',c:4},{n:'Tito',c:3},{n:'Filemom',c:1},{n:'Hebreus',c:13},
+  {n:'Tiago',c:5},{n:'1 Pedro',c:5},{n:'2 Pedro',c:3},{n:'1 João',c:5},
+  {n:'2 João',c:1},{n:'3 João',c:1},{n:'Judas',c:1},{n:'Apocalipse',c:22}
+];
+
+const VERSICULOS = [
+  {t:'O Senhor é o meu pastor; nada me faltará.',r:'Salmos 23:1'},
+  {t:'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.',r:'João 3:16'},
+  {t:'Tudo posso naquele que me fortalece.',r:'Filipenses 4:13'},
+  {t:'O Senhor é a minha luz e a minha salvação; a quem temerei?',r:'Salmos 27:1'},
+  {t:'Confia no Senhor de todo o teu coração e não te apoies no teu próprio entendimento.',r:'Provérbios 3:5'},
+  {t:'Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus.',r:'Isaías 41:10'},
+  {t:'Buscai primeiro o reino de Deus e a sua justiça, e todas estas coisas vos serão acrescentadas.',r:'Mateus 6:33'},
+  {t:'Alegrai-vos sempre no Senhor; outra vez digo: alegrai-vos.',r:'Filipenses 4:4'},
+  {t:'A fé é a certeza daquilo que esperamos e a prova das coisas que não vemos.',r:'Hebreus 11:1'},
+  {t:'Antes de te eu formar no ventre te conheci; e antes que saísses da madre, te santifiquei.',r:'Jeremias 1:5'},
+  {t:'Sede fortes e corajosos. Não temais nem vos assusteis, porque o Senhor teu Deus é contigo.',r:'Josué 1:9'},
+  {t:'O amor é paciente, o amor é bondoso; não inveja, não se vangloria, não se orgulha.',r:'1 Coríntios 13:4'},
+  {t:'Porque eu sei os planos que tenho para vós, diz o Senhor, planos de paz e não de mal, para vos dar um futuro e uma esperança.',r:'Jeremias 29:11'},
+  {t:'Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei.',r:'Mateus 11:28'},
+];
+
+// ===== NAVIGATION =====
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 's-bible') initBible();
+}
+
+// ===== TOAST =====
+let toastTmr;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// ===== VERSÍCULO DO DIA =====
+function loadVDia() {
+  var d = new Date();
+  // Key includes year+month+day — guaranteed to change every day
+  var dateKey = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+  var saved = localStorage.getItem('fc_vdia');
+  var savedObj = null;
+  try { savedObj = saved ? JSON.parse(saved) : null; } catch(e) {}
+  
+  var idx;
+  if (savedObj && savedObj.date === dateKey) {
+    idx = savedObj.idx;
+  } else {
+    // New day — advance to next versículo
+    var lastIdx = (savedObj && typeof savedObj.idx === 'number') ? savedObj.idx : -1;
+    idx = (lastIdx + 1) % VERSICULOS.length;
+    localStorage.setItem('fc_vdia', JSON.stringify({date: dateKey, idx: idx}));
+  }
+  renderVDia(VERSICULOS[idx]);
+}
+
+function renderVDia(v) {
+  setTimeout(function() {
+    var el = document.getElementById('v-content');
+    if (el) el.innerHTML =
+      '<div class="v-text">"' + v.t + '"</div>' +
+      '<div class="v-ref"><span>' + v.r + '</span>' +
+      '<div class="v-refresh" onclick="loadRandom()">↻</div></div>';
+  }, 400);
+}
+
+function loadRandom() {
+  var el = document.getElementById('v-content');
+  if (el) el.innerHTML = '<div class="loading-box"><div class="spinner"></div><p>Inspirando novo versículo...</p></div>';
+  var saved = localStorage.getItem('fc_vdia');
+  var cur = 0;
+  try { cur = JSON.parse(saved).idx || 0; } catch(e) {}
+  // Always pick a different one
+  var next = (cur + 1 + Math.floor(Math.random() * (VERSICULOS.length - 1))) % VERSICULOS.length;
+  // Save for today so refresh button doesn't keep changing
+  var d = new Date();
+  var dateKey = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+  localStorage.setItem('fc_vdia', JSON.stringify({date: dateKey, idx: next}));
+  setTimeout(function() { renderVDia(VERSICULOS[next]); }, 400);
+}
+
+// ===== BIBLE =====
+function initBible() {
+  if (!document.getElementById('sel-book').options.length) {
+    BOOKS.forEach((b,i) => {
+      const o = document.createElement('option');
+      o.value = i; o.textContent = b.n;
+      document.getElementById('sel-book').appendChild(o);
+    });
+    document.getElementById('sel-book').value = S.book;
+    buildChapSel();
+    checkOfflineStatus();
+    loadChapter();
+  }
+}
+
+function checkOfflineStatus() {
+  const cached = !!S.bibleCache[S.version];
+  if (!navigator.onLine) {
+    document.getElementById('offline-bar').classList.add('show');
+    document.getElementById('cache-bar').classList.remove('show');
+  } else if (cached) {
+    document.getElementById('cache-bar').classList.add('show');
+    document.getElementById('offline-bar').classList.remove('show');
+  }
+}
+
+function buildChapSel() {
+  const sel = document.getElementById('sel-chap');
+  sel.innerHTML = '';
+  const total = BOOKS[S.book].c;
+  for (let i = 1; i <= total; i++) {
+    const o = document.createElement('option');
+    o.value = i-1; o.textContent = `Capítulo ${i}`;
+    if (i-1 === S.chap) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+
+function onBookChange() {
+  S.book = parseInt(document.getElementById('sel-book').value);
+  S.chap = 0;
+  buildChapSel();
+  loadChapter();
+}
+function onChapChange() {
+  S.chap = parseInt(document.getElementById('sel-chap').value);
+  loadChapter();
+}
+
+function setVersion(v, btn) {
+  S.version = v;
+  document.querySelectorAll('.vtab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  checkOfflineStatus();
+  loadChapter();
+}
+
+function setFs(sz, btn) {
+  S.fontSize = sz;
+  document.querySelectorAll('.fs-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.vtext').forEach(el => {
+    el.className = `vtext ${sz}`;
+  });
+}
+
+async function loadChapter() {
+  const area = document.getElementById('verses-area');
+  area.innerHTML = '<div class="loading-box"><div class="spinner"></div><p>Carregando...</p></div>';
+  updateTitle();
+
+  try {
+    const data = await getBibleData(S.version);
+    const bookData = data[S.book];
+    const verses = bookData.chapters[S.chap];
+    renderVerses(verses);
+    updateNavBtns();
+    area.scrollTop = 0;
+  } catch(e) {
+    area.innerHTML = `<div class="loading-box"><p style="color:var(--danger)">⚠️ Erro ao carregar. Verifique sua conexão.</p></div>`;
+  }
+}
+
+async function getBibleData(version) {
+  if (S.bibleCache[version]) return S.bibleCache[version];
+
+  // Show caching progress
+  const prog = document.getElementById('caching-prog');
+  const fill = document.getElementById('prog-fill');
+  const label = document.getElementById('prog-label');
+  prog.classList.add('show');
+  label.textContent = `Baixando ${version.toUpperCase()} para uso offline...`;
+
+  const resp = await fetch(`bibles/${version}.json`);
+  if (!resp.ok) throw new Error('fetch failed');
+
+  const reader = resp.body.getReader();
+  const contentLength = +resp.headers.get('Content-Length') || 4000000;
+  let received = 0;
+  const chunks = [];
+
+  while(true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    fill.style.width = Math.min(95, (received/contentLength)*100) + '%';
+  }
+
+  const blob = new Blob(chunks);
+  const text = await blob.text();
+  const data = JSON.parse(text);
+  S.bibleCache[version] = data;
+  fill.style.width = '100%';
+
+  setTimeout(() => {
+    prog.classList.remove('show');
+    fill.style.width = '0%';
+    document.getElementById('cache-bar').classList.add('show');
+    toast(`✅ ${version.toUpperCase()} salvo para uso offline!`);
+  }, 500);
+
+  return data;
+}
+
+function updateTitle() {
+  document.getElementById('b-title').textContent = `${BOOKS[S.book].n} ${S.chap+1}`;
+}
+
+function renderVerses(verses) {
+  const area = document.getElementById('verses-area');
+  area.innerHTML = '';
+  const vk = `${S.version}_${S.book}_${S.chap}`;
+
+  verses.forEach((text, i) => {
+    const key = `${vk}_${i}`;
+    const isHL = !!S.highlights[key];
+    const isBM = !!S.bookmarks[key];
+    const note = S.notes[key] || '';
+
+    const div = document.createElement('div');
+    div.className = `verse-block${isHL?' hl':''}${isBM?' bm':''}`;
+    div.id = `vb-${i}`;
+
+    div.innerHTML = `
+      <div class="vnum">${i+1}</div>
+      <div class="vbody">
+        <div class="vtext ${S.fontSize}">${text}</div>
+        <div class="vactions" id="va-${i}" style="display:none">
+          <button class="vact-btn${isHL?' on':''}" onclick="toggleHL('${key}',${i})">✨ Destacar</button>
+          <button class="vact-btn${isBM?' on':''}" onclick="toggleBM('${key}',${i})">🔖 Salvar</button>
+          <button class="vact-btn" onclick="toggleNote(${i},'${key}')">📝 Anotar</button>
+          <button class="vact-btn" onclick="copyVerse(${i})">📋 Copiar</button>
+        </div>
+        ${note ? `<div class="saved-note" id="snote-${i}">📝 ${note}</div>` : `<div class="saved-note" id="snote-${i}" style="display:none">📝 ${note}</div>`}
+        <textarea class="vnote-in" id="ni-${i}" placeholder="Escreva sua anotação..." style="display:none" rows="3">${note}</textarea>
+      </div>`;
+
+    div.querySelector('.vnum').addEventListener('click', () => toggleActions(i));
+    div.querySelector('.vtext').addEventListener('click', () => toggleActions(i));
+    area.appendChild(div);
+  });
+}
+
+function toggleActions(i) {
+  const el = document.getElementById(`va-${i}`);
+  const vis = el.style.display !== 'none';
+  document.querySelectorAll('.vactions').forEach(a => a.style.display='none');
+  if (!vis) el.style.display='flex';
+}
+
+function toggleHL(key, i) {
+  S.highlights[key] = !S.highlights[key];
+  localStorage.setItem('fc_hl', JSON.stringify(S.highlights));
+  document.getElementById(`vb-${i}`).classList.toggle('hl', S.highlights[key]);
+  document.getElementById(`va-${i}`).children[0].classList.toggle('on', S.highlights[key]);
+  toast(S.highlights[key] ? '✨ Versículo destacado!' : 'Destaque removido');
+}
+
+function toggleBM(key, i) {
+  S.bookmarks[key] = !S.bookmarks[key];
+  localStorage.setItem('fc_bm', JSON.stringify(S.bookmarks));
+  document.getElementById(`vb-${i}`).classList.toggle('bm', S.bookmarks[key]);
+  document.getElementById(`va-${i}`).children[1].classList.toggle('on', S.bookmarks[key]);
+  toast(S.bookmarks[key] ? '🔖 Versículo salvo!' : 'Marcador removido');
+}
+
+function toggleNote(i, key) {
+  const ta = document.getElementById(`ni-${i}`);
+  const vis = ta.style.display !== 'none';
+  if (vis) {
+    const val = ta.value.trim();
+    S.notes[key] = val;
+    localStorage.setItem('fc_nt', JSON.stringify(S.notes));
+    const sn = document.getElementById(`snote-${i}`);
+    if (val) { sn.textContent = '📝 ' + val; sn.style.display='block'; toast('📝 Anotação salva!'); }
+    else { sn.style.display='none'; }
+    ta.style.display='none';
+  } else {
+    ta.style.display='block';
+    ta.focus();
+  }
+}
+
+function copyVerse(i) {
+  const vt = document.querySelector(`#vb-${i} .vtext`);
+  if (vt) {
+    const text = `${BOOKS[S.book].n} ${S.chap+1}:${i+1} — ${vt.textContent}`;
+    navigator.clipboard.writeText(text).then(() => toast('📋 Versículo copiado!')).catch(() => toast('Não foi possível copiar'));
+  }
+}
+
+function prevChap() {
+  if (S.chap <= 0) return;
+  S.chap--;
+  document.getElementById('sel-chap').value = S.chap;
+  loadChapter();
+}
+function nextChap() {
+  if (S.chap >= BOOKS[S.book].c - 1) return;
+  S.chap++;
+  document.getElementById('sel-chap').value = S.chap;
+  loadChapter();
+}
+function updateNavBtns() {
+  document.getElementById('btn-prev').disabled = S.chap <= 0;
+  document.getElementById('btn-next').disabled = S.chap >= BOOKS[S.book].c - 1;
+}
+
+
+// ===== DEVOCIONAL =====
+function renderDevoList() {
+  const devos = JSON.parse(localStorage.getItem('fc_devos') || '[]');
+  const el = document.getElementById('devo-list');
+  if (!devos.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><div class="empty-title">Nenhum devocional escrito ainda.</div><div class="empty-desc">Registre suas lições diárias acima para guardá-las em segurança.</div></div>';
+    return;
+  }
+  el.innerHTML = devos.slice().reverse().map((d,i) => `
+    <div class="entry-card">
+      <div class="entry-date">${d.date}</div>
+      <div class="entry-title">${d.titulo}</div>
+      <div class="entry-ref">📖 ${d.passagem}</div>
+      <div class="entry-body">${d.texto}</div>
+    </div>`).join('');
+}
+function saveDevo() {
+  const titulo = document.getElementById('devo-titulo').value.trim();
+  const passagem = document.getElementById('devo-passagem').value.trim();
+  const texto = document.getElementById('devo-texto').value.trim();
+  if (!titulo || !texto) { toast('⚠️ Preencha o título e a lição.'); return; }
+  const devos = JSON.parse(localStorage.getItem('fc_devos') || '[]');
+  devos.push({ titulo, passagem: passagem || '—', texto, date: new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}) });
+  localStorage.setItem('fc_devos', JSON.stringify(devos));
+  document.getElementById('devo-titulo').value = '';
+  document.getElementById('devo-passagem').value = '';
+  document.getElementById('devo-texto').value = '';
+  renderDevoList();
+  toast('✅ Devocional salvo!');
+  addPts(15);
+}
+
+// ===== PEDIDOS DE ORAÇÃO =====
+function renderPrayerList() {
+  var el = document.getElementById('prayer-list');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-box"><div class="spinner"></div><p>Carregando orações...</p></div>';
+  fsGetPrayers(function(prayers) {
+    if (!prayers || !prayers.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🙏</div><div class="empty-title">Nenhum pedido cadastrado.</div><div class="empty-desc">Seja o primeiro a compartilhar um clamor de fé com a Família Quadrangular!</div></div>';
+      return;
+    }
+    el.innerHTML = prayers.map(function(p) {
+      return '<div class="prayer-card">' +
+        '<div class="prayer-card-header">' +
+          '<div class="prayer-for">🙏 ' + (p.anon ? 'Anônimo' : (p.user || 'Anônimo')) + '</div>' +
+        '</div>' +
+        (p.for_who ? '<div style="font-size:12px;color:var(--gold2);margin-bottom:4px"><strong>Para:</strong> ' + p.for_who + '</div>' : '') +
+        '<div class="prayer-body">' + p.body + '</div>' +
+        '<div class="prayer-meta">' +
+          '<div class="prayer-date">' + (p.date || '') + '</div>' +
+          '<div class="prayer-amen" onclick="addAmen('' + p.id + '',' + (p.amens||0) + ')">🕊️ Amém (' + (p.amens||0) + ')</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  });
+}
+
+
