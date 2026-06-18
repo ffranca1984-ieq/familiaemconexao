@@ -939,18 +939,23 @@ db.collection('config').doc('roles').get().then(function(doc) {
   if (doc.exists) {
     _rolesCache = doc.data();
     localStorage.setItem('fc_roles', JSON.stringify(_rolesCache));
-    // Re-apply UI if user already loaded
+    // Re-apply UI if user already loaded — guard against timing issues
     var u = JSON.parse(localStorage.getItem('fc_user') || 'null');
-    if (u) applyRoleUI(u);
+    if (u && typeof applyRoleUI === 'function') applyRoleUI(u);
   }
 }).catch(function(e) {
   console.warn('Could not load roles:', e);
 });
 
-// Start listening to roles globally
-fsGetRoles(function(roles) {
-  _rolesCache = roles;
-});
+// Start listening to roles globally — deferred to avoid timing issues
+setTimeout(function() {
+  fsGetRoles(function(roles) {
+    _rolesCache = roles;
+    // Re-apply role UI if user is logged in
+    var u = JSON.parse(localStorage.getItem('fc_user') || 'null');
+    if (u && typeof applyRoleUI === 'function') applyRoleUI(u);
+  });
+}, 500);
 </script>
 
 </body>

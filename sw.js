@@ -1,4 +1,4 @@
-const VERSION = 'fec-v3';
+const VERSION = 'fec-v4';
 const APP_CACHE = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
@@ -19,25 +19,27 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Ignore non-GET requests (Firebase uses POST/PATCH internally)
+  // Only handle GET requests
   if (e.request.method !== 'GET') return;
 
-  // Ignore external APIs — Firebase, Google, Anthropic
-  const external = [
+  // Skip all external domains
+  const skip = [
     'firestore.googleapis.com', 'firebase', 'googleapis.com',
     'gstatic.com', 'accounts.google.com', 'anthropic.com',
-    'firebaseio.com', 'firebaseapp.com'
+    'firebaseio.com', 'firebaseapp.com', 'vercel.app',
+    'vercel-scripts.com', 'vercel.live'
   ];
-  if (external.some(h => url.hostname.includes(h))) return;
+  if (skip.some(h => url.hostname.includes(h))) return;
 
-  // Bible JSON files: cache-first
+  // Bible JSON: cache-first
   if (url.pathname.startsWith('/bibles/')) {
     e.respondWith(
       caches.match(e.request).then(cached => {
         if (cached) return cached;
         return fetch(e.request).then(resp => {
-          if (resp.ok) {
-            caches.open(VERSION).then(c => c.put(e.request, resp.clone()));
+          if (resp && resp.ok && resp.status === 200) {
+            const clone = resp.clone();
+            caches.open(VERSION).then(c => c.put(e.request, clone));
           }
           return resp;
         }).catch(() => caches.match(e.request));
@@ -46,12 +48,13 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Same-origin app shell: network-first, cache fallback
+  // Same origin only: network-first, cache fallback
   if (url.hostname === self.location.hostname) {
     e.respondWith(
       fetch(e.request).then(resp => {
-        if (resp.ok) {
-          caches.open(VERSION).then(c => c.put(e.request, resp.clone()));
+        if (resp && resp.ok && resp.status === 200) {
+          const clone = resp.clone();
+          caches.open(VERSION).then(c => c.put(e.request, clone));
         }
         return resp;
       }).catch(() => caches.match(e.request))
