@@ -1048,7 +1048,7 @@ function loadVDia() {
   var hoje = d.toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
   var prompt = 'Você é um pastor cristão. Escolha UM versículo biblico inspirador e relevante para uma família cristã hoje (' + hoje + '). Pode ser de qualquer livro da Bíblia, varie bastante e evite repetir versículos populares sempre. Responda SOMENTE em JSON válido, sem texto fora do JSON, com esta estrutura exata: {"t":"texto exato do versículo em português","r":"Livro Capítulo:Versículo"}';
 
-  fetch('/.netlify/functions/devo', {
+  fetch('/api/devo', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({prompt: prompt})
@@ -1097,7 +1097,7 @@ function loadRandom() {
   var hoje = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
   var prompt = 'Você é um pastor cristão. Escolha UM versículo biblico inspirador diferente para uma família cristã agora. Varie bastante entre livros do Antigo e Novo Testamento, evite os versículos mais óbvios sempre. Responda SOMENTE em JSON válido: {"t":"texto exato do versículo em português","r":"Livro Capítulo:Versículo"}';
 
-  fetch('/.netlify/functions/devo', {
+  fetch('/api/devo', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({prompt: prompt})
@@ -1615,7 +1615,7 @@ function loadDevoIA() {
   if(wrap) wrap.innerHTML='<div class="devo-ia-loading"><div class="spinner"></div><p>GERANDO DEVOCIONAL...</p></div>';
   var hoje=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   var prompt='Voce e um pastor da Igreja do Evangelho Quadrangular. Gere um devocional diario para familias cristas para hoje ('+hoje+'). Responda SOMENTE em JSON valido, sem texto fora do JSON, com esta estrutura: {"v":"versiculo","r":"Livro X:Y","ref":"Livro X:Y | TEMA","rx":"paragrafo1\n\nparagrafo2\n\nparagrafo3","p":"acao pratica"}';
-  fetch('/.netlify/functions/devo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt})})
+  fetch('/api/devo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt})})
     .then(function(r){if(!r.ok)throw new Error(r.status);return r.json();})
     .then(function(data){
       var text=data.content[0].text.trim();if(text.indexOf('```')===0){var lines2=text.split('\n');if(lines2[0].indexOf('```')===0)lines2.shift();if(lines2[lines2.length-1]==='```')lines2.pop();text=lines2.join('\n').trim();}text=text.trim();
