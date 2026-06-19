@@ -1030,22 +1030,54 @@ function toast(msg) {
 // ===== VERSÍCULO DO DIA =====
 function loadVDia() {
   var d = new Date();
-  // Key includes year+month+day — guaranteed to change every day
   var dateKey = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
-  var saved = localStorage.getItem('fc_vdia');
-  var savedObj = null;
-  try { savedObj = saved ? JSON.parse(saved) : null; } catch(e) {}
-  
-  var idx;
-  if (savedObj && savedObj.date === dateKey) {
-    idx = savedObj.idx;
-  } else {
-    // New day — advance to next versículo
-    var lastIdx = (savedObj && typeof savedObj.idx === 'number') ? savedObj.idx : -1;
-    idx = (lastIdx + 1) % VERSICULOS.length;
-    localStorage.setItem('fc_vdia', JSON.stringify({date: dateKey, idx: idx}));
+
+  // Check cache for today's IA-generated verse
+  var cached = localStorage.getItem('fc_vdia_ia');
+  if (cached) {
+    try {
+      var obj = JSON.parse(cached);
+      if (obj.date === dateKey && obj.v) { renderVDia(obj.v); return; }
+    } catch(e) {}
   }
-  renderVDia(VERSICULOS[idx]);
+
+  // Show loading
+  var el = document.getElementById('v-content');
+  if (el) el.innerHTML = '<div class="loading-box"><div class="spinner"></div><p>Buscando versículo...</p></div>';
+
+  var hoje = d.toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
+  var prompt = 'Você é um pastor cristão. Escolha UM versículo biblico inspirador e relevante para uma família cristã hoje (' + hoje + '). Pode ser de qualquer livro da Bíblia, varie bastante e evite repetir versículos populares sempre. Responda SOMENTE em JSON válido, sem texto fora do JSON, com esta estrutura exata: {"t":"texto exato do versículo em português","r":"Livro Capítulo:Versículo"}';
+
+  fetch('/.netlify/functions/devo', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({prompt: prompt})
+  }).then(function(resp) {
+    if (!resp.ok) throw new Error('Proxy error ' + resp.status);
+    return resp.json();
+  }).then(function(data) {
+    var text = data.content[0].text.trim();
+    if (text.indexOf('```') === 0) {
+      text = text.replace(/^```[\w]*\n?/, '').replace(/\n?```\s*$/, '').trim();
+    }
+    var v = JSON.parse(text);
+    localStorage.setItem('fc_vdia_ia', JSON.stringify({date: dateKey, v: v}));
+    renderVDia(v);
+  }).catch(function(e) {
+    console.error('Versiculo IA error:', e);
+    // Fallback to static list
+    var saved = localStorage.getItem('fc_vdia');
+    var savedObj = null;
+    try { savedObj = saved ? JSON.parse(saved) : null; } catch(err) {}
+    var idx;
+    if (savedObj && savedObj.date === dateKey) { idx = savedObj.idx; }
+    else {
+      var lastIdx = (savedObj && typeof savedObj.idx === 'number') ? savedObj.idx : -1;
+      idx = (lastIdx + 1) % VERSICULOS.length;
+      localStorage.setItem('fc_vdia', JSON.stringify({date: dateKey, idx: idx}));
+    }
+    renderVDia(VERSICULOS[idx]);
+  });
 }
 
 function renderVDia(v) {
@@ -1061,16 +1093,38 @@ function renderVDia(v) {
 function loadRandom() {
   var el = document.getElementById('v-content');
   if (el) el.innerHTML = '<div class="loading-box"><div class="spinner"></div><p>Inspirando novo versículo...</p></div>';
-  var saved = localStorage.getItem('fc_vdia');
-  var cur = 0;
-  try { cur = JSON.parse(saved).idx || 0; } catch(e) {}
-  // Always pick a different one
-  var next = (cur + 1 + Math.floor(Math.random() * (VERSICULOS.length - 1))) % VERSICULOS.length;
-  // Save for today so refresh button doesn't keep changing
-  var d = new Date();
-  var dateKey = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
-  localStorage.setItem('fc_vdia', JSON.stringify({date: dateKey, idx: next}));
-  setTimeout(function() { renderVDia(VERSICULOS[next]); }, 400);
+
+  var hoje = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
+  var prompt = 'Você é um pastor cristão. Escolha UM versículo biblico inspirador diferente para uma família cristã agora. Varie bastante entre livros do Antigo e Novo Testamento, evite os versículos mais óbvios sempre. Responda SOMENTE em JSON válido: {"t":"texto exato do versículo em português","r":"Livro Capítulo:Versículo"}';
+
+  fetch('/.netlify/functions/devo', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({prompt: prompt})
+  }).then(function(resp) {
+    if (!resp.ok) throw new Error('Proxy error ' + resp.status);
+    return resp.json();
+  }).then(function(data) {
+    var text = data.content[0].text.trim();
+    if (text.indexOf('```') === 0) {
+      text = text.replace(/^```[\w]*\n?/, '').replace(/\n?```\s*$/, '').trim();
+    }
+    var v = JSON.parse(text);
+    var d = new Date();
+    var dateKey = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+    localStorage.setItem('fc_vdia_ia', JSON.stringify({date: dateKey, v: v}));
+    renderVDia(v);
+  }).catch(function(e) {
+    console.error('Versiculo random IA error:', e);
+    var saved = localStorage.getItem('fc_vdia');
+    var cur = 0;
+    try { cur = JSON.parse(saved).idx || 0; } catch(err) {}
+    var next = (cur + 1 + Math.floor(Math.random() * (VERSICULOS.length - 1))) % VERSICULOS.length;
+    var d = new Date();
+    var dateKey = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+    localStorage.setItem('fc_vdia', JSON.stringify({date: dateKey, idx: next}));
+    setTimeout(function() { renderVDia(VERSICULOS[next]); }, 400);
+  });
 }
 
 // ===== BIBLE =====
