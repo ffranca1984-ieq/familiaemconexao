@@ -106,22 +106,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .cat-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
 .cat-card:active{background:var(--bg3);transform:translateY(-1px)}
-.cat-icon{font-size:28px;margin-bottom:8px}
+.cat-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;margin:0 auto 9px;background:var(--gold-dim);border:1px solid var(--border)}
 .cat-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
 .cat-count{font-size:11px;color:var(--text3);font-weight:600}
 .cat-count.full{color:var(--gold2)}
-.sticker-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.sticker-card{background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--radius);padding:12px 8px;text-align:center;position:relative;min-height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.sticker-card.locked{opacity:.45}
+.sticker-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+.sticker-card{position:relative;border-radius:12px;padding:10px 6px 9px;text-align:center;min-height:148px;display:flex;flex-direction:column;align-items:center;background:var(--bg2);border:1px solid var(--border2)}
+.sticker-card.locked{background:repeating-linear-gradient(135deg,var(--bg2) 0 8px,var(--bg3) 8px 16px);border:2px dashed var(--border2);justify-content:center}
+.sticker-lock-circle{width:46px;height:46px;border-radius:50%;border:2px dashed var(--text3);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text3);margin-bottom:6px}
+.sticker-name.locked-name{color:var(--text3);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.sticker-portrait{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:7px;border:2.5px solid var(--border2);background:var(--bg3)}
+.sticker-card.comum .sticker-portrait{border-color:#7a7a82;background:linear-gradient(160deg,#2a2a30,#3a3a42)}
+.sticker-card.rara .sticker-portrait{border-color:#638fe6;background:linear-gradient(160deg,#1d2a4a,#2c4170);box-shadow:0 0 10px rgba(99,143,230,.35)}
+.sticker-card.lendaria .sticker-portrait{border-color:var(--gold);background:linear-gradient(160deg,#4a3a10,#6b5418);box-shadow:0 0 14px var(--gold-glow);animation:legendShine 2.2s ease-in-out infinite}
+@keyframes legendShine{0%,100%{box-shadow:0 0 10px var(--gold-glow)}50%{box-shadow:0 0 18px var(--gold2)}}
 .sticker-card.comum{border-color:var(--border2)}
-.sticker-card.rara{border-color:#638fe6;box-shadow:0 0 10px rgba(99,143,230,.15)}
-.sticker-card.lendaria{border-color:var(--gold);box-shadow:0 0 14px var(--gold-glow)}
-.sticker-emoji{font-size:30px;margin-bottom:6px}
-.sticker-name{font-size:11px;font-weight:700;color:var(--text);line-height:1.25}
-.sticker-rarity{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:4px;color:var(--text3)}
-.sticker-card.rara .sticker-rarity{color:#638fe6}
-.sticker-card.lendaria .sticker-rarity{color:var(--gold2)}
-.sticker-qty{position:absolute;top:5px;right:7px;font-size:9px;font-weight:800;color:var(--gold2);background:var(--gold-dim);border-radius:8px;padding:1px 6px}
+.sticker-card.rara{border-color:rgba(99,143,230,.4)}
+.sticker-card.lendaria{border-color:var(--gold)}
+.sticker-name{font-size:11px;font-weight:700;color:var(--text);line-height:1.2}
+.sticker-verse{font-size:9px;color:var(--text3);font-style:italic;margin-top:2px}
+.sticker-ribbon{position:absolute;top:6px;right:6px;font-size:7px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:8px;background:var(--bg4);color:var(--text3)}
+.sticker-card.rara .sticker-ribbon{background:rgba(99,143,230,.18);color:#8fb2f5}
+.sticker-card.lendaria .sticker-ribbon{background:var(--gold-dim);color:var(--gold2)}
+.sticker-qty{position:absolute;top:6px;left:6px;font-size:9px;font-weight:800;color:var(--gold2);background:var(--gold-dim);border-radius:8px;padding:1px 6px}
 .sticker-lock{font-size:22px}
 .cat-detail-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .cat-detail-icon{font-size:24px}
@@ -136,14 +143,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pack-hint{margin-top:18px;font-size:12px;color:var(--text2);letter-spacing:.04em}
 .pack-results{display:none;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:380px}
 .pack-results.show{display:grid}
-.pack-card{background:var(--bg2);border:2px solid var(--border2);border-radius:var(--radius);padding:14px 8px;text-align:center;opacity:0;transform:scale(.5) rotateY(90deg);animation:cardReveal .45s ease forwards}
+.pack-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:14px 8px 10px;text-align:center;opacity:0;transform:scale(.5) rotateY(90deg);animation:cardReveal .45s ease forwards;display:flex;flex-direction:column;align-items:center}
 .pack-card.comum{border-color:var(--border2)}
-.pack-card.rara{border-color:#638fe6;box-shadow:0 0 14px rgba(99,143,230,.25)}
-.pack-card.lendaria{border-color:var(--gold);box-shadow:0 0 20px var(--gold-glow)}
+.pack-card.rara{border-color:rgba(99,143,230,.4)}
+.pack-card.lendaria{border-color:var(--gold)}
 @keyframes cardReveal{to{opacity:1;transform:scale(1) rotateY(0)}}
-.pack-card-emoji{font-size:32px;margin-bottom:6px}
+.pack-card-portrait{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:23px;margin-bottom:7px;border:2.5px solid var(--border2);background:var(--bg3)}
+.pack-card.comum .pack-card-portrait{border-color:#7a7a82;background:linear-gradient(160deg,#2a2a30,#3a3a42)}
+.pack-card.rara .pack-card-portrait{border-color:#638fe6;background:linear-gradient(160deg,#1d2a4a,#2c4170);box-shadow:0 0 10px rgba(99,143,230,.35)}
+.pack-card.lendaria .pack-card-portrait{border-color:var(--gold);background:linear-gradient(160deg,#4a3a10,#6b5418);box-shadow:0 0 14px var(--gold-glow)}
 .pack-card-name{font-size:11px;font-weight:700;color:var(--text)}
-.pack-card-new{font-size:8px;font-weight:800;color:var(--success);margin-top:3px;letter-spacing:.05em}
+.pack-card-verse{font-size:9px;color:var(--text3);font-style:italic;margin-top:1px}
+.pack-card-new{font-size:8px;font-weight:800;color:var(--success);margin-top:4px;letter-spacing:.05em}
 .pack-close-btn{margin-top:24px;background:var(--gold-dim);border:1px solid var(--border);color:var(--gold2);font-weight:700;font-size:13px;border-radius:24px;padding:11px 26px;cursor:pointer;display:none}
 .pack-close-btn.show{display:block}
 
@@ -882,6 +893,7 @@ body.light .vnote-in { background:var(--bg4); }
         <div class="cat-grid" id="album-cat-grid"></div>
       </div>
       <div id="album-detail-view" style="display:none">
+        <div class="cat-detail-header" id="album-detail-header"></div>
         <div class="sticker-grid" id="album-sticker-grid"></div>
       </div>
     </div>
@@ -1807,41 +1819,41 @@ var ALBUM_CATS=[
   {id:'posexilio',name:'Líderes Pós-Exílio',icon:'🏛️'}
 ];
 var ALBUM_CARDS=[
-  {id:'davi',name:'Davi',cat:'reis',rarity:'lendaria',emoji:'👑'},
-  {id:'salomao',name:'Salomão',cat:'reis',rarity:'rara',emoji:'🤴'},
-  {id:'saul',name:'Saul',cat:'reis',rarity:'comum',emoji:'🛡️'},
-  {id:'ezequias',name:'Ezequias',cat:'reis',rarity:'comum',emoji:'🏺'},
-  {id:'josias',name:'Josias',cat:'reis',rarity:'comum',emoji:'📖'},
-  {id:'gideao',name:'Gideão',cat:'juizes',rarity:'rara',emoji:'⚔️'},
-  {id:'sansao',name:'Sansão',cat:'juizes',rarity:'rara',emoji:'💪'},
-  {id:'debora',name:'Débora',cat:'juizes',rarity:'comum',emoji:'🎺'},
-  {id:'otoniel',name:'Otoniel',cat:'juizes',rarity:'comum',emoji:'🗡️'},
-  {id:'elias',name:'Elias',cat:'profetas',rarity:'lendaria',emoji:'🔥'},
-  {id:'eliseu',name:'Eliseu',cat:'profetas',rarity:'rara',emoji:'🪔'},
-  {id:'isaias',name:'Isaías',cat:'profetas',rarity:'comum',emoji:'📯'},
-  {id:'jeremias',name:'Jeremias',cat:'profetas',rarity:'comum',emoji:'😢'},
-  {id:'daniel',name:'Daniel',cat:'profetas',rarity:'rara',emoji:'🦁'},
-  {id:'pedro',name:'Pedro',cat:'apostolos',rarity:'lendaria',emoji:'🗝️'},
-  {id:'joao',name:'João',cat:'apostolos',rarity:'rara',emoji:'💗'},
-  {id:'paulo',name:'Paulo',cat:'apostolos',rarity:'lendaria',emoji:'✍️'},
-  {id:'tiago',name:'Tiago',cat:'apostolos',rarity:'comum',emoji:'🌾'},
-  {id:'andre',name:'André',cat:'apostolos',rarity:'comum',emoji:'🎣'},
-  {id:'abraao',name:'Abraão',cat:'patriarcas',rarity:'lendaria',emoji:'⭐'},
-  {id:'isaque',name:'Isaque',cat:'patriarcas',rarity:'comum',emoji:'🌄'},
-  {id:'jaco',name:'Jacó',cat:'patriarcas',rarity:'rara',emoji:'🪜'},
-  {id:'noe',name:'Noé',cat:'patriarcas',rarity:'rara',emoji:'🌈'},
-  {id:'eva',name:'Eva',cat:'mulheres',rarity:'rara',emoji:'🍃'},
-  {id:'sara',name:'Sara',cat:'mulheres',rarity:'comum',emoji:'⛺'},
-  {id:'rute',name:'Rute',cat:'mulheres',rarity:'comum',emoji:'🌾'},
-  {id:'ester',name:'Ester',cat:'mulheres',rarity:'lendaria',emoji:'👸'},
-  {id:'maria',name:'Maria',cat:'mulheres',rarity:'lendaria',emoji:'🌸'},
-  {id:'moises',name:'Moisés',cat:'lideresat',rarity:'lendaria',emoji:'🪄'},
-  {id:'josue',name:'Josué',cat:'lideresat',rarity:'rara',emoji:'🏰'},
-  {id:'samuel',name:'Samuel',cat:'lideresat',rarity:'comum',emoji:'👂'},
-  {id:'joaobatista',name:'João Batista',cat:'precursores',rarity:'rara',emoji:'💧'},
-  {id:'arao',name:'Arão',cat:'precursores',rarity:'comum',emoji:'🪨'},
-  {id:'neemias',name:'Neemias',cat:'posexilio',rarity:'comum',emoji:'🧱'},
-  {id:'esdras',name:'Esdras',cat:'posexilio',rarity:'rara',emoji:'📚'}
+  {id:'davi',name:'Davi',cat:'reis',rarity:'lendaria',emoji:'👑',verse:'1 Samuel 17'},
+  {id:'salomao',name:'Salomão',cat:'reis',rarity:'rara',emoji:'🤴',verse:'1 Reis 3'},
+  {id:'saul',name:'Saul',cat:'reis',rarity:'comum',emoji:'🛡️',verse:'1 Samuel 10'},
+  {id:'ezequias',name:'Ezequias',cat:'reis',rarity:'comum',emoji:'🏺',verse:'2 Reis 18'},
+  {id:'josias',name:'Josias',cat:'reis',rarity:'comum',emoji:'📖',verse:'2 Crônicas 34'},
+  {id:'gideao',name:'Gideão',cat:'juizes',rarity:'rara',emoji:'⚔️',verse:'Juízes 6'},
+  {id:'sansao',name:'Sansão',cat:'juizes',rarity:'rara',emoji:'💪',verse:'Juízes 16'},
+  {id:'debora',name:'Débora',cat:'juizes',rarity:'comum',emoji:'🎺',verse:'Juízes 4'},
+  {id:'otoniel',name:'Otoniel',cat:'juizes',rarity:'comum',emoji:'🗡️',verse:'Juízes 3'},
+  {id:'elias',name:'Elias',cat:'profetas',rarity:'lendaria',emoji:'🔥',verse:'1 Reis 18'},
+  {id:'eliseu',name:'Eliseu',cat:'profetas',rarity:'rara',emoji:'🪔',verse:'2 Reis 2'},
+  {id:'isaias',name:'Isaías',cat:'profetas',rarity:'comum',emoji:'📯',verse:'Isaías 6'},
+  {id:'jeremias',name:'Jeremias',cat:'profetas',rarity:'comum',emoji:'😢',verse:'Jeremias 1'},
+  {id:'daniel',name:'Daniel',cat:'profetas',rarity:'rara',emoji:'🦁',verse:'Daniel 6'},
+  {id:'pedro',name:'Pedro',cat:'apostolos',rarity:'lendaria',emoji:'🗝️',verse:'Mateus 16'},
+  {id:'joao',name:'João',cat:'apostolos',rarity:'rara',emoji:'💗',verse:'João 21'},
+  {id:'paulo',name:'Paulo',cat:'apostolos',rarity:'lendaria',emoji:'✍️',verse:'Atos 9'},
+  {id:'tiago',name:'Tiago',cat:'apostolos',rarity:'comum',emoji:'🌾',verse:'Atos 12'},
+  {id:'andre',name:'André',cat:'apostolos',rarity:'comum',emoji:'🎣',verse:'João 1'},
+  {id:'abraao',name:'Abraão',cat:'patriarcas',rarity:'lendaria',emoji:'⭐',verse:'Gênesis 12'},
+  {id:'isaque',name:'Isaque',cat:'patriarcas',rarity:'comum',emoji:'🌄',verse:'Gênesis 22'},
+  {id:'jaco',name:'Jacó',cat:'patriarcas',rarity:'rara',emoji:'🪜',verse:'Gênesis 28'},
+  {id:'noe',name:'Noé',cat:'patriarcas',rarity:'rara',emoji:'🌈',verse:'Gênesis 7'},
+  {id:'eva',name:'Eva',cat:'mulheres',rarity:'rara',emoji:'🍃',verse:'Gênesis 3'},
+  {id:'sara',name:'Sara',cat:'mulheres',rarity:'comum',emoji:'⛺',verse:'Gênesis 18'},
+  {id:'rute',name:'Rute',cat:'mulheres',rarity:'comum',emoji:'🌾',verse:'Rute 1'},
+  {id:'ester',name:'Ester',cat:'mulheres',rarity:'lendaria',emoji:'👸',verse:'Ester 4'},
+  {id:'maria',name:'Maria',cat:'mulheres',rarity:'lendaria',emoji:'🌸',verse:'Lucas 1'},
+  {id:'moises',name:'Moisés',cat:'lideresat',rarity:'lendaria',emoji:'🪄',verse:'Êxodo 3'},
+  {id:'josue',name:'Josué',cat:'lideresat',rarity:'rara',emoji:'🏰',verse:'Josué 1'},
+  {id:'samuel',name:'Samuel',cat:'lideresat',rarity:'comum',emoji:'👂',verse:'1 Samuel 3'},
+  {id:'joaobatista',name:'João Batista',cat:'precursores',rarity:'rara',emoji:'💧',verse:'Mateus 3'},
+  {id:'arao',name:'Arão',cat:'precursores',rarity:'comum',emoji:'🪨',verse:'Êxodo 4'},
+  {id:'neemias',name:'Neemias',cat:'posexilio',rarity:'comum',emoji:'🧱',verse:'Neemias 2'},
+  {id:'esdras',name:'Esdras',cat:'posexilio',rarity:'rara',emoji:'📚',verse:'Esdras 7'}
 ];
 var RARITY_LABEL={comum:'Comum',rara:'Rara',lendaria:'Lendária'};
 var RARITY_WEIGHTS={comum:70,rara:25,lendaria:5};
@@ -1922,17 +1934,26 @@ function openCatDetail(catId){
   document.getElementById('album-detail-view').style.display='block';
   document.getElementById('album-title').textContent=cat.name;
   document.getElementById('album-back-btn').setAttribute('onclick','albumBack()');
+  var owned=cards.filter(function(c){return s.cards[c.id];}).length;
+  document.getElementById('album-detail-header').innerHTML=
+    '<div class="cat-detail-icon">'+cat.icon+'</div>'+
+    '<div><div class="cat-detail-title">'+cat.name+'</div>'+
+    '<div class="cat-detail-sub">'+owned+' de '+cards.length+' figurinhas coletadas</div></div>';
   var grid=document.getElementById('album-sticker-grid');
   grid.innerHTML=cards.map(function(c){
     var owned=s.cards[c.id];
     if(!owned){
-      return '<div class="sticker-card locked"><div class="sticker-lock">❓</div><div class="sticker-name">???</div></div>';
+      return '<div class="sticker-card locked">'+
+        '<div class="sticker-lock-circle">?</div>'+
+        '<div class="sticker-name locked-name">Bloqueada</div>'+
+      '</div>';
     }
     return '<div class="sticker-card '+c.rarity+'">'+
       (owned>1?'<div class="sticker-qty">x'+owned+'</div>':'')+
-      '<div class="sticker-emoji">'+c.emoji+'</div>'+
+      '<div class="sticker-ribbon">'+RARITY_LABEL[c.rarity]+'</div>'+
+      '<div class="sticker-portrait">'+c.emoji+'</div>'+
       '<div class="sticker-name">'+c.name+'</div>'+
-      '<div class="sticker-rarity">'+RARITY_LABEL[c.rarity]+'</div>'+
+      '<div class="sticker-verse">'+c.verse+'</div>'+
     '</div>';
   }).join('');
 }
@@ -1974,8 +1995,9 @@ function revealPack(){
   var resEl=document.getElementById('pack-results');
   resEl.innerHTML=_packDrawn.map(function(c,i){
     return '<div class="pack-card '+c.rarity+'" style="animation-delay:'+(i*0.15)+'s">'+
-      '<div class="pack-card-emoji">'+c.emoji+'</div>'+
+      '<div class="pack-card-portrait">'+c.emoji+'</div>'+
       '<div class="pack-card-name">'+c.name+'</div>'+
+      '<div class="pack-card-verse">'+c.verse+'</div>'+
       '<div class="pack-card-new">'+(newFlags[i]?'✨ NOVA — ':'')+RARITY_LABEL[c.rarity]+'</div>'+
     '</div>';
   }).join('');
