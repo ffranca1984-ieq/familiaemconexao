@@ -90,6 +90,63 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .app-footer p{font-size:11px;color:var(--text3);letter-spacing:.04em;line-height:1.6}
 .app-footer strong{color:var(--gold);font-weight:600}
 
+/* ===== ALBUM BIBLICO ===== */
+.album-stats{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:18px}
+.album-env-info{display:flex;align-items:center;gap:10px}
+.album-env-icon{font-size:26px}
+.album-env-count{font-size:20px;font-weight:800;color:var(--gold2)}
+.album-env-label{font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+.album-open-btn{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1408;font-weight:800;font-size:13px;border:none;border-radius:30px;padding:11px 18px;cursor:pointer;transition:transform .15s}
+.album-open-btn:active{transform:scale(.96)}
+.album-open-btn:disabled{background:var(--bg4);color:var(--text3);cursor:default}
+.album-progress-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.album-progress-label{font-size:12px;color:var(--text2)}
+.album-progress-bar{height:6px;background:var(--bg4);border-radius:4px;overflow:hidden;margin-top:6px}
+.album-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px;transition:width .4s}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cat-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
+.cat-card:active{background:var(--bg3);transform:translateY(-1px)}
+.cat-icon{font-size:28px;margin-bottom:8px}
+.cat-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.cat-count{font-size:11px;color:var(--text3);font-weight:600}
+.cat-count.full{color:var(--gold2)}
+.sticker-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.sticker-card{background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--radius);padding:12px 8px;text-align:center;position:relative;min-height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sticker-card.locked{opacity:.45}
+.sticker-card.comum{border-color:var(--border2)}
+.sticker-card.rara{border-color:#638fe6;box-shadow:0 0 10px rgba(99,143,230,.15)}
+.sticker-card.lendaria{border-color:var(--gold);box-shadow:0 0 14px var(--gold-glow)}
+.sticker-emoji{font-size:30px;margin-bottom:6px}
+.sticker-name{font-size:11px;font-weight:700;color:var(--text);line-height:1.25}
+.sticker-rarity{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:4px;color:var(--text3)}
+.sticker-card.rara .sticker-rarity{color:#638fe6}
+.sticker-card.lendaria .sticker-rarity{color:var(--gold2)}
+.sticker-qty{position:absolute;top:5px;right:7px;font-size:9px;font-weight:800;color:var(--gold2);background:var(--gold-dim);border-radius:8px;padding:1px 6px}
+.sticker-lock{font-size:22px}
+.cat-detail-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.cat-detail-icon{font-size:24px}
+.cat-detail-title{font-size:15px;font-weight:700;color:var(--text)}
+.cat-detail-sub{font-size:11px;color:var(--text3)}
+
+/* PACK OPENING */
+.pack-overlay{display:none;position:fixed;inset:0;background:rgba(8,7,5,.95);z-index:200;align-items:center;justify-content:center;flex-direction:column;padding:20px}
+.pack-overlay.show{display:flex}
+.pack-envelope{width:140px;height:100px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:60px;filter:drop-shadow(0 0 18px var(--gold-glow));animation:envPulse 1.4s ease-in-out infinite}
+@keyframes envPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.pack-hint{margin-top:18px;font-size:12px;color:var(--text2);letter-spacing:.04em}
+.pack-results{display:none;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:380px}
+.pack-results.show{display:grid}
+.pack-card{background:var(--bg2);border:2px solid var(--border2);border-radius:var(--radius);padding:14px 8px;text-align:center;opacity:0;transform:scale(.5) rotateY(90deg);animation:cardReveal .45s ease forwards}
+.pack-card.comum{border-color:var(--border2)}
+.pack-card.rara{border-color:#638fe6;box-shadow:0 0 14px rgba(99,143,230,.25)}
+.pack-card.lendaria{border-color:var(--gold);box-shadow:0 0 20px var(--gold-glow)}
+@keyframes cardReveal{to{opacity:1;transform:scale(1) rotateY(0)}}
+.pack-card-emoji{font-size:32px;margin-bottom:6px}
+.pack-card-name{font-size:11px;font-weight:700;color:var(--text)}
+.pack-card-new{font-size:8px;font-weight:800;color:var(--success);margin-top:3px;letter-spacing:.05em}
+.pack-close-btn{margin-top:24px;background:var(--gold-dim);border:1px solid var(--border);color:var(--gold2);font-weight:700;font-size:13px;border-radius:24px;padding:11px 26px;cursor:pointer;display:none}
+.pack-close-btn.show{display:block}
+
 /* ===== BÍBLIA ===== */
 .bible-controls{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border2);display:flex;flex-direction:column;gap:10px;flex-shrink:0}
 .bible-row1{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -604,6 +661,11 @@ body.light .vnote-in { background:var(--bg4); }
           <div class="mod-name">Avisos da Igreja</div>
           <div class="mod-desc">Agenda e eventos da semana.</div>
         </div>
+        <div class="mod-card" onclick="goTo('s-album');initAlbum()">
+          <div class="mod-icon ic-gold">🏆</div>
+          <div class="mod-name">O Time de Jesus</div>
+          <div class="mod-desc">Colecione figurinhas bíblicas.</div>
+        </div>
         <div class="mod-card" id="admin-mod-card" style="display:none;border-color:var(--border);background:var(--bg3)" onclick="goTo('s-avisos');renderAvisos();setTimeout(openAdminModal,300)">
           <div class="mod-icon ic-gold">⚙️</div>
           <div class="mod-name">Painel Admin</div>
@@ -791,6 +853,42 @@ body.light .vnote-in { background:var(--bg4); }
   </div>
 </div>
 
+<!-- ===== ÁLBUM BÍBLICO (O TIME DE JESUS) ===== -->
+<div class="screen" id="s-album">
+  <div class="back-bar">
+    <div class="back-btn" onclick="albumBack()" id="album-back-btn">←</div>
+    <div><div class="eyebrow">Coleção</div><div class="page-title" id="album-title">O Time de Jesus</div></div>
+  </div>
+  <div class="scroll">
+    <div style="padding:16px;padding-bottom:28px">
+      <div class="album-stats">
+        <div class="album-env-info">
+          <div class="album-env-icon">✉️</div>
+          <div>
+            <div class="album-env-count" id="album-env-count">0</div>
+            <div class="album-env-label">Envelopes</div>
+          </div>
+        </div>
+        <button class="album-open-btn" id="album-open-btn" onclick="openPack()">Abrir Envelope</button>
+      </div>
+      <div class="album-progress-row">
+        <div>
+          <div class="album-progress-label" id="album-progress-label">0 de 0 figurinhas</div>
+          <div class="album-progress-bar"><div class="album-progress-fill" id="album-progress-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div id="album-cats-view">
+        <div class="sec-title">Categorias</div>
+        <div class="cat-grid" id="album-cat-grid"></div>
+      </div>
+      <div id="album-detail-view" style="display:none">
+        <div class="sticker-grid" id="album-sticker-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- ===== VERSÍCULOS SALVOS ===== -->
 <div class="screen" id="s-saved">
   <div class="back-bar">
@@ -814,6 +912,13 @@ body.light .vnote-in { background:var(--bg4); }
 </div>
 
 <!-- ===== PROFILE MODAL ===== -->
+<div class="pack-overlay" id="pack-overlay">
+  <div class="pack-envelope" id="pack-envelope" onclick="revealPack()">✉️</div>
+  <div class="pack-hint" id="pack-hint">Toque no envelope para abrir</div>
+  <div class="pack-results" id="pack-results"></div>
+  <button class="pack-close-btn" id="pack-close-btn" onclick="closePack()">Continuar</button>
+</div>
+
 <div class="modal-overlay" id="modal-profile" onclick="closeProfile(event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -1313,6 +1418,7 @@ function saveDevo() {
   renderDevoList();
   toast('✅ Devocional salvo!');
   addPts(15);
+  grantBonusEnvelope('devo');
 }
 
 // ===== PEDIDOS DE ORAÇÃO =====
@@ -1640,7 +1746,7 @@ function renderPlano(){
 function togglePlanoDay(i){
   var done=JSON.parse(localStorage.getItem('fc_plano_'+currentPlano)||'[]');
   done[i]=!done[i]; localStorage.setItem('fc_plano_'+currentPlano,JSON.stringify(done));
-  renderPlano(); if(done[i]){toast('Dia concluido! +5 pts');addPts(5);}
+  renderPlano(); if(done[i]){toast('Dia concluido! +5 pts');addPts(5);grantBonusEnvelope('plano');}
 }
 
 // ===== GINCANA =====
@@ -1685,6 +1791,207 @@ function renderQuizResult(){
   var msg=pct>=80?'Excelente! Voce conhece bem a Palavra!':pct>=50?'Bom trabalho! Continue estudando!':'Continue lendo a Biblia!';
   document.getElementById('quiz-area').innerHTML='<div class="quiz-result"><div class="quiz-result-icon">'+icon+'</div><div class="quiz-result-title">'+msg+'</div><div class="quiz-result-sub">Voce acertou '+QS.score/10+' de '+QS.shuffled.length+' perguntas</div><div class="quiz-result-pts">+'+QS.score+' pontos!</div><button class="quiz-restart" onclick="initQuiz()">Jogar Novamente</button></div>';
   addPts(QS.score); document.getElementById('quiz-pts-top').textContent=QS.score;
+  if(QS.score>0)grantBonusEnvelope('quiz');
+}
+
+// ===== ALBUM BIBLICO (O TIME DE JESUS) =====
+var ALBUM_CATS=[
+  {id:'reis',name:'Reis',icon:'👑'},
+  {id:'juizes',name:'Juízes',icon:'⚔️'},
+  {id:'profetas',name:'Profetas',icon:'🔥'},
+  {id:'apostolos',name:'Apóstolos',icon:'🕊️'},
+  {id:'patriarcas',name:'Patriarcas',icon:'👨'},
+  {id:'mulheres',name:'Mulheres da Bíblia',icon:'👩'},
+  {id:'lideresat',name:'Líderes do AT',icon:'📜'},
+  {id:'precursores',name:'Precursores',icon:'✨'},
+  {id:'posexilio',name:'Líderes Pós-Exílio',icon:'🏛️'}
+];
+var ALBUM_CARDS=[
+  {id:'davi',name:'Davi',cat:'reis',rarity:'lendaria',emoji:'👑'},
+  {id:'salomao',name:'Salomão',cat:'reis',rarity:'rara',emoji:'🤴'},
+  {id:'saul',name:'Saul',cat:'reis',rarity:'comum',emoji:'🛡️'},
+  {id:'ezequias',name:'Ezequias',cat:'reis',rarity:'comum',emoji:'🏺'},
+  {id:'josias',name:'Josias',cat:'reis',rarity:'comum',emoji:'📖'},
+  {id:'gideao',name:'Gideão',cat:'juizes',rarity:'rara',emoji:'⚔️'},
+  {id:'sansao',name:'Sansão',cat:'juizes',rarity:'rara',emoji:'💪'},
+  {id:'debora',name:'Débora',cat:'juizes',rarity:'comum',emoji:'🎺'},
+  {id:'otoniel',name:'Otoniel',cat:'juizes',rarity:'comum',emoji:'🗡️'},
+  {id:'elias',name:'Elias',cat:'profetas',rarity:'lendaria',emoji:'🔥'},
+  {id:'eliseu',name:'Eliseu',cat:'profetas',rarity:'rara',emoji:'🪔'},
+  {id:'isaias',name:'Isaías',cat:'profetas',rarity:'comum',emoji:'📯'},
+  {id:'jeremias',name:'Jeremias',cat:'profetas',rarity:'comum',emoji:'😢'},
+  {id:'daniel',name:'Daniel',cat:'profetas',rarity:'rara',emoji:'🦁'},
+  {id:'pedro',name:'Pedro',cat:'apostolos',rarity:'lendaria',emoji:'🗝️'},
+  {id:'joao',name:'João',cat:'apostolos',rarity:'rara',emoji:'💗'},
+  {id:'paulo',name:'Paulo',cat:'apostolos',rarity:'lendaria',emoji:'✍️'},
+  {id:'tiago',name:'Tiago',cat:'apostolos',rarity:'comum',emoji:'🌾'},
+  {id:'andre',name:'André',cat:'apostolos',rarity:'comum',emoji:'🎣'},
+  {id:'abraao',name:'Abraão',cat:'patriarcas',rarity:'lendaria',emoji:'⭐'},
+  {id:'isaque',name:'Isaque',cat:'patriarcas',rarity:'comum',emoji:'🌄'},
+  {id:'jaco',name:'Jacó',cat:'patriarcas',rarity:'rara',emoji:'🪜'},
+  {id:'noe',name:'Noé',cat:'patriarcas',rarity:'rara',emoji:'🌈'},
+  {id:'eva',name:'Eva',cat:'mulheres',rarity:'rara',emoji:'🍃'},
+  {id:'sara',name:'Sara',cat:'mulheres',rarity:'comum',emoji:'⛺'},
+  {id:'rute',name:'Rute',cat:'mulheres',rarity:'comum',emoji:'🌾'},
+  {id:'ester',name:'Ester',cat:'mulheres',rarity:'lendaria',emoji:'👸'},
+  {id:'maria',name:'Maria',cat:'mulheres',rarity:'lendaria',emoji:'🌸'},
+  {id:'moises',name:'Moisés',cat:'lideresat',rarity:'lendaria',emoji:'🪄'},
+  {id:'josue',name:'Josué',cat:'lideresat',rarity:'rara',emoji:'🏰'},
+  {id:'samuel',name:'Samuel',cat:'lideresat',rarity:'comum',emoji:'👂'},
+  {id:'joaobatista',name:'João Batista',cat:'precursores',rarity:'rara',emoji:'💧'},
+  {id:'arao',name:'Arão',cat:'precursores',rarity:'comum',emoji:'🪨'},
+  {id:'neemias',name:'Neemias',cat:'posexilio',rarity:'comum',emoji:'🧱'},
+  {id:'esdras',name:'Esdras',cat:'posexilio',rarity:'rara',emoji:'📚'}
+];
+var RARITY_LABEL={comum:'Comum',rara:'Rara',lendaria:'Lendária'};
+var RARITY_WEIGHTS={comum:70,rara:25,lendaria:5};
+
+function getAlbumState(){
+  var s=JSON.parse(localStorage.getItem('fc_album')||'null');
+  if(!s) s={cards:{},envelopes:1,lastFree:null,lastBonus:{}};
+  if(!s.lastBonus) s.lastBonus={};
+  return s;
+}
+function saveAlbumState(s){localStorage.setItem('fc_album',JSON.stringify(s));}
+function todayStr(){return new Date().toDateString();}
+
+function checkDailyFreeEnvelope(){
+  var s=getAlbumState();
+  if(s.lastFree!==todayStr()){
+    s.envelopes=(s.envelopes||0)+1;
+    s.lastFree=todayStr();
+    saveAlbumState(s);
+    toast('✉️ Envelope grátis do dia recebido!');
+  }
+}
+// Concede envelope bônus por ação (limitado a 1x por dia por tipo de ação)
+function grantBonusEnvelope(tag){
+  var s=getAlbumState();
+  if(s.lastBonus[tag]===todayStr())return;
+  s.lastBonus[tag]=todayStr();
+  s.envelopes=(s.envelopes||0)+1;
+  saveAlbumState(s);
+  toast('🎁 Envelope bônus por sua dedicação!');
+  if(document.getElementById('s-album').classList.contains('active'))renderAlbumStats();
+}
+
+function initAlbum(){
+  checkDailyFreeEnvelope();
+  document.getElementById('album-cats-view').style.display='block';
+  document.getElementById('album-detail-view').style.display='none';
+  document.getElementById('album-title').textContent='O Time de Jesus';
+  document.getElementById('album-back-btn').setAttribute('onclick','goTo(\'s-home\')');
+  renderAlbumStats();
+  renderAlbumCats();
+}
+function albumBack(){
+  document.getElementById('album-cats-view').style.display='block';
+  document.getElementById('album-detail-view').style.display='none';
+  document.getElementById('album-title').textContent='O Time de Jesus';
+  document.getElementById('album-back-btn').setAttribute('onclick','goTo(\'s-home\')');
+}
+function renderAlbumStats(){
+  var s=getAlbumState();
+  document.getElementById('album-env-count').textContent=s.envelopes||0;
+  var btn=document.getElementById('album-open-btn');
+  btn.disabled=!(s.envelopes>0);
+  var total=ALBUM_CARDS.length;
+  var owned=Object.keys(s.cards).length;
+  document.getElementById('album-progress-label').textContent=owned+' de '+total+' figurinhas';
+  document.getElementById('album-progress-fill').style.width=(owned/total*100)+'%';
+}
+function renderAlbumCats(){
+  var s=getAlbumState();
+  var grid=document.getElementById('album-cat-grid');
+  grid.innerHTML=ALBUM_CATS.map(function(c){
+    var cards=ALBUM_CARDS.filter(function(k){return k.cat===c.id;});
+    var owned=cards.filter(function(k){return s.cards[k.id];}).length;
+    var full=owned===cards.length;
+    return '<div class="cat-card" onclick="openCatDetail(\''+c.id+'\')">'+
+      '<div class="cat-icon">'+c.icon+'</div>'+
+      '<div class="cat-name">'+c.name+'</div>'+
+      '<div class="cat-count'+(full?' full':'')+'">'+owned+'/'+cards.length+(full?' ✓':'')+'</div>'+
+    '</div>';
+  }).join('');
+}
+function openCatDetail(catId){
+  var s=getAlbumState();
+  var cat=ALBUM_CATS.find(function(c){return c.id===catId;});
+  var cards=ALBUM_CARDS.filter(function(c){return c.cat===catId;});
+  document.getElementById('album-cats-view').style.display='none';
+  document.getElementById('album-detail-view').style.display='block';
+  document.getElementById('album-title').textContent=cat.name;
+  document.getElementById('album-back-btn').setAttribute('onclick','albumBack()');
+  var grid=document.getElementById('album-sticker-grid');
+  grid.innerHTML=cards.map(function(c){
+    var owned=s.cards[c.id];
+    if(!owned){
+      return '<div class="sticker-card locked"><div class="sticker-lock">❓</div><div class="sticker-name">???</div></div>';
+    }
+    return '<div class="sticker-card '+c.rarity+'">'+
+      (owned>1?'<div class="sticker-qty">x'+owned+'</div>':'')+
+      '<div class="sticker-emoji">'+c.emoji+'</div>'+
+      '<div class="sticker-name">'+c.name+'</div>'+
+      '<div class="sticker-rarity">'+RARITY_LABEL[c.rarity]+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function pickRarity(){
+  var r=Math.random()*100;
+  if(r<RARITY_WEIGHTS.lendaria)return 'lendaria';
+  if(r<RARITY_WEIGHTS.lendaria+RARITY_WEIGHTS.rara)return 'rara';
+  return 'comum';
+}
+function drawCard(){
+  var rarity=pickRarity();
+  var pool=ALBUM_CARDS.filter(function(c){return c.rarity===rarity;});
+  if(!pool.length)pool=ALBUM_CARDS;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+var _packDrawn=[];
+function openPack(){
+  var s=getAlbumState();
+  if(!(s.envelopes>0)){toast('Você não tem envelopes. Volte mais tarde!');return;}
+  document.getElementById('pack-overlay').classList.add('show');
+  document.getElementById('pack-envelope').style.display='flex';
+  document.getElementById('pack-hint').style.display='block';
+  document.getElementById('pack-results').classList.remove('show');
+  document.getElementById('pack-results').innerHTML='';
+  document.getElementById('pack-close-btn').classList.remove('show');
+}
+function revealPack(){
+  var s=getAlbumState();
+  if(!(s.envelopes>0)){closePack();return;}
+  s.envelopes--;
+  _packDrawn=[];
+  for(var i=0;i<5;i++)_packDrawn.push(drawCard());
+  var newFlags=_packDrawn.map(function(c){return !s.cards[c.id];});
+  _packDrawn.forEach(function(c){s.cards[c.id]=(s.cards[c.id]||0)+1;});
+  saveAlbumState(s);
+  document.getElementById('pack-envelope').style.display='none';
+  document.getElementById('pack-hint').style.display='none';
+  var resEl=document.getElementById('pack-results');
+  resEl.innerHTML=_packDrawn.map(function(c,i){
+    return '<div class="pack-card '+c.rarity+'" style="animation-delay:'+(i*0.15)+'s">'+
+      '<div class="pack-card-emoji">'+c.emoji+'</div>'+
+      '<div class="pack-card-name">'+c.name+'</div>'+
+      '<div class="pack-card-new">'+(newFlags[i]?'✨ NOVA — ':'')+RARITY_LABEL[c.rarity]+'</div>'+
+    '</div>';
+  }).join('');
+  resEl.classList.add('show');
+  setTimeout(function(){document.getElementById('pack-close-btn').classList.add('show');},900);
+}
+function closePack(){
+  document.getElementById('pack-overlay').classList.remove('show');
+  renderAlbumStats();
+  if(document.getElementById('album-detail-view').style.display==='block'){
+    var title=document.getElementById('album-title').textContent;
+    var cat=ALBUM_CATS.find(function(c){return c.name===title;});
+    if(cat)openCatDetail(cat.id);
+  } else {
+    renderAlbumCats();
+  }
 }
 
 // ===== AVISOS (static data fallback) =====
